@@ -16,6 +16,7 @@ public Plugin:myinfo =
 // http://docs.sourcemod.net/api/index.php?fastload=show&id=575&
 public OnPluginStart()
 {
+    SocketSetOption(INVALID_HANDLE, SocketKeepAlive, 1);
     SocketSetOption(INVALID_HANDLE, DebugMode, 1);
 
     // Hook into "bomb_dropped" game events and call Event_BombDropped
