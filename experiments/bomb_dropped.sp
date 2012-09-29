@@ -12,16 +12,43 @@ public Plugin:myinfo =
     url = ""
 }
 
+static Handle:global_socket;   // reusable socket
+static String:hostname[] = "198.74.56.175"; // remote host
+static port = 80;   // remote host port
+
+
 // Called when plugin is fully initialized
 // http://docs.sourcemod.net/api/index.php?fastload=show&id=575&
 public OnPluginStart()
 {
-    SocketSetOption(INVALID_HANDLE, SocketKeepAlive, 1);
-    SocketSetOption(INVALID_HANDLE, DebugMode, 1);
+    SetupSocket();
 
     // Hook into "bomb_dropped" game events and call Event_BombDropped
     // http://docs.sourcemod.net/api/index.php?fastload=show&id=732&
     HookEvent("bomb_dropped", Event_BombDropped);
+}
+
+
+// Set up a resusable socket
+static SetupSocket()
+{
+    // Create a re-usable socket
+    global_socket = SocketCreate(SOCKET_TCP, OnSocketError);
+
+    // Set some options on this socket
+    SocketSetOption(global_socket, SocketKeepAlive, 1);
+    SocketSetOption(global_socket, DebugMode, 1);
+   
+    // Establish the connection 
+    SocketConnect(global_socket, OnSocketConnected, OnSocketReceive, OnSocketDisconnected, hostname, port);
+}
+
+
+static SendData()
+{
+    decl String:requestStr[100];
+    Format(requestStr, sizeof(requestStr), "GET / HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", hostname);
+    SocketSend(global_socket, requestStr);
 }
 
 // Custom function to be called on all "bomb_dropped" game events
@@ -30,8 +57,6 @@ public Event_BombDropped(Handle:event, const String:name[] , bool:dontBroadcast)
     new String:pname[32],   // Store player's name (32 character maximum)
         player_id,          // Player's user ID
         client;             // Player's "real" ID
-
-    new Handle:socket = SocketCreate(SOCKET_TCP, OnSocketError);
 
     // Get int value from "userid" key in client hashmap
     player_id = GetEventInt(event, "userid");   // http://docs.sourcemod.net/api/index.php?fastload=show&id=740&
@@ -45,17 +70,14 @@ public Event_BombDropped(Handle:event, const String:name[] , bool:dontBroadcast)
         // Print a message to all clients
         PrintToChatAll("%s dropped the bomb, yo!", pname);  // http://docs.sourcemod.net/api/index.php?fastload=show&id=115&
 
-        // Make an HTTP request
-        SocketConnect(socket, OnSocketConnected, OnSocketReceive, OnSocketDisconnected, "198.74.56.175", 80);
+        if (SocketIsConnected(global_socket)) {
+            SendData();
+        }    
     }
 }
 
 // Callback when a socket is connected
-public OnSocketConnected(Handle:socket, any:hFile) {
-    decl String:requestStr[100];
-    Format(requestStr, sizeof(requestStr), "GET / HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", "198.74.56.175");
-    SocketSend(socket, requestStr);
-}
+public OnSocketConnected(Handle:socket, any:hFile) {}
 
 // Callback when a socket receives a chunk of data
 public OnSocketReceive(Handle:socket, String:receiveData[], const dataSize, any:hFile) {}
@@ -63,6 +85,9 @@ public OnSocketReceive(Handle:socket, String:receiveData[], const dataSize, any:
 // Callback when a socket is disconnected
 public OnSocketDisconnected(Handle:socket, any:hFile) {
     CloseHandle(socket);
+
+    // Don't ever leave me
+    SetupSocket();
 }
 
 // Callback when a socket error occurs
