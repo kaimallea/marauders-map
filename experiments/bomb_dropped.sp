@@ -44,10 +44,10 @@ static SetupSocket()
 }
 
 
-static SendData()
+static SendData(const String:eventname[], const String:playername[])
 {
-    decl String:requestStr[100];
-    Format(requestStr, sizeof(requestStr), "GET / HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", hostname);
+    decl String:requestStr[200];
+    Format(requestStr, sizeof(requestStr), "GET /%s/%s/ HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", eventname, playername, hostname);
     SocketSend(global_socket, requestStr);
 }
 
@@ -71,7 +71,7 @@ public Event_BombDropped(Handle:event, const String:name[] , bool:dontBroadcast)
         PrintToChatAll("%s dropped the bomb, yo!", pname);  // http://docs.sourcemod.net/api/index.php?fastload=show&id=115&
 
         if (SocketIsConnected(global_socket)) {
-            SendData();
+            SendData(name, pname);
         }    
     }
 }
