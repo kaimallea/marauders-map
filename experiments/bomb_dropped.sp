@@ -13,8 +13,8 @@ public Plugin:myinfo =
 }
 
 static Handle:global_socket;   // reusable socket
-static String:hostname[] = "198.74.56.175"; // remote host
-static port = 80;   // remote host port
+static const String:hostname[] = "198.74.56.175"; // remote host
+static const port = 80;   // remote host port
 
 
 // Called when plugin is fully initialized
