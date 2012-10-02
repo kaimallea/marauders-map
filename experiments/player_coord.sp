@@ -5,9 +5,9 @@
 // must be in this exact format
 public Plugin:myinfo = 
 {
-    name = "Bomb Drop Hook Experiment",
-    author = "Kai",
-    description = "Test hooking into bomb drop event",
+    name = "Player Coordinates Experiment",
+    author = "Anton",
+    description = "Hooking into player_footstep event",
     version = "0.0.1",
     url = ""
 }
@@ -54,27 +54,28 @@ static SendData(const String:eventname[], const String:playername[])
 // Custom function to be called on all "bomb_dropped" game events
 public Event_PlayerMove(Handle:event, const String:name[] , bool:dontBroadcast)
 {
-    new Float:ppos[3],		// Store player's position
-	new String:pname[32],   // Store player's name (32 character maximum)
-        player_id,          // Player's user ID
-        client;             // Player's "real" ID
+    new Float:ppos[3],		        // Store player's positio
+    String:pname[32],		        // Store player's name (32 character maximum)
+    player_id,          		// Player's user ID
+    client;            		  	// Player's "real" ID
 
     // Get int value from "userid" key in client hashmap
     player_id = GetEventInt(event, "userid");   // http://docs.sourcemod.net/api/index.php?fastload=show&id=740&
     
 
 
-	// Translates a userid index to the real player index
+    // Translates a userid index to the real player index
     client = GetClientOfUserId(player_id);      // http://docs.sourcemod.net/api/index.php?fastload=show&id=442&
 
     // Get coordinates from "client"
-	player_coords = GetEntDataVector(client, origin, ppos);
+    //player_coords = GetEntDataVector(client, origin, ppos);
   
     if (client) {
         GetClientName(client, pname, sizeof(pname));    // http://docs.sourcemod.net/api/index.php?fastload=show&id=399&
-
+        GetEntPropVector(client, Prop_Send, "m_vecOrigin", ppos);
         // Print a message to all clients
-        PrintToChatAll("%s moved to %n", pname, ppos);  // http://docs.sourcemod.net/api/index.php?fastload=show&id=115&
+        PrintToChatAll("%s moved to %f,%f,%f", pname, ppos[0], ppos[1], ppos[2]);  // http://docs.sourcemod.net/api/index.php?fastload=show&id=115&
+
 
         if (SocketIsConnected(global_socket)) {
             SendData(name, pname);
