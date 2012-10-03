@@ -29,12 +29,14 @@ public OnPluginStart()
 public Action:GetPlayerPositions(Handle:timer)
 {
     new i = 1, max = GetClientCount();
+    new team = 0;
     new Float:pos[3];
     
     for (; i <= max; i++) {
         GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+        team = GetClientTeam(i);
         decl String:requestStr[100];
-        Format(requestStr, sizeof(requestStr), "{\"id\":%d,\"pos\":{\"x\":%f,\"y\":%f,\"z\":%f}}\r\n", i, pos[0], pos[1], pos[2]);
+        Format(requestStr, sizeof(requestStr), "{\"type\":\"pos\",\"id\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f,\"z\":%f}}\r\n", i, team, pos[0], pos[1], pos[2]);
 
         SocketSend(gSocket, requestStr);
     }
