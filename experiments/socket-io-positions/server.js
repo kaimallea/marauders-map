@@ -2,13 +2,13 @@
  * Server ports
  */
 var HTTP_PORT = 1337,
-	TCP_PORT = 1338;
+    TCP_PORT = 1338;
 
 /**
  * Required includes
  */
 var http = require('http'),
-	net = require('net'),
+    net = require('net'),
     express = require('express'),
     webapp = express(), // func call
     io = require('socket.io');
@@ -16,13 +16,13 @@ var http = require('http'),
 httpServer = http.createServer(webapp);
 webSocketServer = io.listen(httpServer);
 tcpServer = net.createServer(function (socket) {
-	socket.setKeepAlive(true, 5);
-	socket.setEncoding('utf-8');
-	socket.on('data', dataProcessor);
+    socket.setKeepAlive(true, 5);
+    socket.setEncoding('utf-8');
+    socket.on('data', dataProcessor);
 });
 
 var dataProcessor = function (data) {
-	console.log(data);
+    console.log(data);
 };
 
 // HTTP requests for static files should match file
