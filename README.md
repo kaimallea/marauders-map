@@ -1,5 +1,5 @@
-spectacular
-===========
+Marauder's Map
+==============
 
 CS:GO Data Capture Plugin
 
