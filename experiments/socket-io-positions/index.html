@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Dust II Overhead Drawing Experiment</title>
+    </head>
+    <body>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/raphael-min.js"></script>
+        <script>
+            // *** SOCKETIO CODE ***
+            var socket = io.connect('http://localhost');
+            socket.on('news', function (data) {
+                console.log(data);
+            });            
+
+ 
+            // *** RALPHAELJS CODE ***
+            var map = Raphael(0, 0, 635, 731);
+            var img = map.image('/img/dust2.jpg', 0, 0, map.width, map.height);
+            
+            var styles = {
+                ct: {
+                    fill: "blue"
+                },
+                t: {
+                    fill: "red"
+                }
+            }
+
+            var player = map.circle(map.width/2, map.height/2, 5);
+            player.attr(styles.ct);
+
+            console.log(player.attr());
+
+            setTimeout(function () {
+                player.animate({
+                    cy: player.attrs.cy+100
+                }, 250, 'ease-in-out');
+            }, 2000);
+
+        </script>
+    </body>
+</html>
