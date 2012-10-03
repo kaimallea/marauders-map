@@ -22,7 +22,7 @@ static Handle:gSocket;   // reusable socket
 public OnPluginStart()
 {
     SetupSocket();
-    CreateTimer(3.0, GetPlayerPositions, _, TIMER_REPEAT);
+    CreateTimer(3.0, GetPlayerPositions, _, TIMER_REPEAT); // Call GPP every 3 secs
 }
 
 
@@ -32,10 +32,10 @@ public Action:GetPlayerPositions(Handle:timer)
     new Float:pos[3];
     
     for (; i <= max; i++) {
-        //GetClientEyePosition(i, pos);
-	GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+        GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
         decl String:requestStr[100];
-        Format(requestStr, sizeof(requestStr), "{\"id\":%d,\"pos\":{\"x\":%f,\"y\":%f,\"z\":%f}}", i, pos[0], pos[1], pos[2]);        
+        Format(requestStr, sizeof(requestStr), "{\"id\":%d,\"pos\":{\"x\":%f,\"y\":%f,\"z\":%f}}\r\n", i, pos[0], pos[1], pos[2]);
+
         SocketSend(gSocket, requestStr);
     }
 
