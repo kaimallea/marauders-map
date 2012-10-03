@@ -38,6 +38,8 @@ var dataProcessor = function (data) {
             return;
         }
 
+        webSocketServer.sockets.emit('positions', json);
+
         console.log(json);
     }
 };
@@ -52,7 +54,7 @@ webapp.get('/', function (req, res) {
 });
 
 webSocketServer.sockets.on('connection', function (socket) {
-    socket.emit('news', {hello: 'world'});
+    //socket.emit('news', {hello: 'world'});
 });
 
 
