@@ -3,42 +3,36 @@
     <head>
         <meta charset="utf-8">
         <title>Dust II Overhead Drawing Experiment</title>
+        <style type="text/css">
+            html, body { margin: 0; padding: 0;}
+        </style>
     </head>
     <body>
-        <script src="/socket.io/socket.io.js"></script>
         <script src="/js/raphael-min.js"></script>
         <script>
+            // *** RALPHAELJS CODE ***
+            var MAP = Raphael(0, 0, 800, 600);
+            var IMG = MAP.image('/img/de_dust2_se_radar.svg', 0, 0, MAP.width, MAP.height);
+        </script>
+        <script src="/js/underscore-min.js"></script>
+        <script src="/js/backbone-min.js"></script>
+        <script src="/js/marauders-map/player.js"></script>
+        <script src="/js/marauders-map/app.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>            
             // *** SOCKETIO CODE ***
             var socket = io.connect('http://localhost');
             socket.on('positions', function (data) {
-                console.log(data);
-            });            
+               
+                // Does this player exist? 
+                var existingPlayer = playerCollection.where({'name': data.name});
 
- 
-            // *** RALPHAELJS CODE ***
-            var map = Raphael(0, 0, 635, 731);
-            var img = map.image('/img/dust2.jpg', 0, 0, map.width, map.height);
-            
-            var styles = {
-                ct: {
-                    fill: "blue"
-                },
-                t: {
-                    fill: "red"
+                if (existingPlayer.length) { // Yes
+                    existingPlayer[0].set(data);
+                } else { // No
+                    playerCollection.add(data);
                 }
-            }
-
-            var player = map.circle(map.width/2, map.height/2, 5);
-            player.attr(styles.ct);
-
-            console.log(player.attr());
-
-            setTimeout(function () {
-                player.animate({
-                    cy: player.attrs.cy+100
-                }, 250, 'ease-in-out');
-            }, 2000);
-
+            });
         </script>
     </body>
 </html>

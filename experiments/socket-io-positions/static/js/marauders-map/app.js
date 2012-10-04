@@ -1,0 +1,1 @@
+var playerCollection = new PlayerCollection();
