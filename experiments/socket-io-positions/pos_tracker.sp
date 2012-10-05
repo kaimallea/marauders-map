@@ -1,9 +1,11 @@
-#include <sourcemod>
+#include <sdktools>
+#include <cstrike>
 #include <socket>
 
 #define PLUGIN_NAME "MMap"
 #define HOSTNAME    "127.0.0.1"
 #define PORT        1338
+#define UPDATE_RATE 1.0   // Seconds
 
 // 'myinfo' is required for all plugins and
 // must be in this exact format
@@ -23,7 +25,7 @@ new Handle:gSocket = INVALID_HANDLE;   // reusable socket
 public OnPluginStart()
 {
     SetupSocket();
-    CreateTimer(3.0, GetPlayerPositions, _, TIMER_REPEAT); // Call GetPlayerPositions every 3 secs
+    CreateTimer(UPDATE_RATE, GetPlayerPositions, _, TIMER_REPEAT); // Call GetPlayerPositions every UPDATE_RATE seconds
 }
 
 
@@ -37,7 +39,9 @@ public Action:GetPlayerPositions(Handle:timer)
 
     new clientId = 1,
         maxClients = GetClientCount(),
-        team = 0;
+        team = 0,
+        bomb = 0,
+        alive = 0;
 
     new Float:pos[3];
     
@@ -47,9 +51,19 @@ public Action:GetPlayerPositions(Handle:timer)
         decl String:playerName[32];
         GetClientName(clientId, playerName, sizeof(playerName));
         team = GetClientTeam(clientId);
-
+        bomb = (GetPlayerWeaponSlot(clientId, 4) != -1) ? 1: 0;
+        alive = IsPlayerAlive(clientId) ? 1 : 0;
         decl String:requestStr[175];
-        Format(requestStr, sizeof(requestStr), "{\"type\":\"pos\",\"name\":\"%s\",\"client_id\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f,\"z\":%f}}\r\n", playerName, clientId, team, pos[0], pos[1], pos[2]);
+        Format(requestStr
+                , sizeof(requestStr)
+                , "{\"type\":\"pos\",\"name\":\"%s\",\"id\":%d,\"team\":%d,\"bomb\":%d,\"alive\":%d,\"pos\":{\"x\":%f,\"y\":%f}}\r\n"
+                , playerName
+                , clientId
+                , team
+                , bomb
+                , alive
+                , pos[0], pos[1]
+        );
 
         SocketSend(gSocket, requestStr);
     }
