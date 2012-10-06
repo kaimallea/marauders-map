@@ -5,15 +5,14 @@
 #define PLUGIN_NAME "MMap"
 #define HOSTNAME    "127.0.0.1"
 #define PORT        1338
-#define UPDATE_RATE 3.0   // Seconds
-
+#define UPDATE_RATE 1.0   // Seconds
 
 public Plugin:myinfo = 
 {
     name = "Position Tracker Experiment",
     author = "Kai Mallea <kmallea@gmail.com>",
     description = "Test sending location of all clients to TCP server",
-    version = "0.0.6",
+    version = "0.0.8",
     url = "http://www.marauders-map.com"
 }
 
@@ -31,31 +30,49 @@ public OnPluginStart()
 
 public Action:GetPlayerPositions(Handle:timer)
 {
+    //PrintToChatAll("GetPlayerPositions()");
+
     if (!SocketIsConnected(gSocket)) {
         SetupSocket();
+        //PrintToChatAll("GetPlayerPositions(): Socket wasn't connected");
         return Plugin_Continue;
     }
 
     new clientId = 1,
         team = 0,
         bomb = 0,
-        dead = 0;
+        dead = 0,
+        total = 0;
 
     new Float:pos[3];
 
+
+    //PrintToChatAll("GetPlayerPositions(): Attempting to allocate %d bytes", (32+1)*128);
+
+
     // Payload will be a JSON object, with an array of objects
-    decl String:payload[32*1024];
+    new String:payload[(32+1)*128];
+
+    // Open JSON object
     StrCat(payload, sizeof(payload), "{\"pos\":[");
 
-    decl String:allPlayersInfo[MaxClients+1][1024];
 
+    //PrintToChatAll("GetPlayerPositions(): Start loop");
+    
     // Loop through all players and collect their info
     for (; clientId <= MaxClients; clientId++) {
 
-        if (!IsClientInGame(clientId) && GetClientTeam) {
+        
+        //PrintToChatAll("GetPlayerPositions(): Loop #%d", clientId);
+        
+        if (!IsClientInGame(clientId)) {
             continue;
         }
-        
+
+        if (++total > 1) {
+            StrCat(payload, sizeof(payload), ",");
+        }
+
         // Get player's position (x,y,z)
         GetEntPropVector(clientId, Prop_Send, "m_vecOrigin", pos);
 
@@ -67,12 +84,12 @@ public Action:GetPlayerPositions(Handle:timer)
 
         // Is player alive?
         dead = IsPlayerAlive(clientId) ? 0 : 1;
-
+    
+        decl String:playerInfo[128];
         // Create a JSON object containing player info
-        decl String:playerInfo[1024];
         Format(playerInfo
                 , sizeof(playerInfo)
-                , "{\"id\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f}}"
+                , "{\"cd\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f}}"
                 , clientId
                 , dead
                 , bomb
@@ -80,12 +97,22 @@ public Action:GetPlayerPositions(Handle:timer)
                 , pos[0], pos[1]
         );
 
-        // Append json object to payload
         StrCat(payload, sizeof(payload), playerInfo);
+
+
     }
 
+    //PrintToChatAll("GetPlayerPositions(): %d players processed", total);
+    
+    // Nothing to send
+    if (!total) {
+        return Plugin_Continue;
+    }
+ 
     // Close JSON object, add CRLF delimeter
     StrCat(payload, sizeof(payload), "]}\r\n");
+
+    //PrintToChatAll("Sending info for %d players", total);
 
     // Send data to HOSTNAME:PORT via TCP
     SocketSend(gSocket, payload);    
