@@ -5,76 +5,97 @@
 #define PLUGIN_NAME "MMap"
 #define HOSTNAME    "127.0.0.1"
 #define PORT        1338
-#define UPDATE_RATE 1.0   // Seconds
+#define UPDATE_RATE 3.0   // Seconds
 
-// 'myinfo' is required for all plugins and
-// must be in this exact format
+
 public Plugin:myinfo = 
 {
     name = "Position Tracker Experiment",
     author = "Kai Mallea <kmallea@gmail.com>",
     description = "Test sending location of all clients to TCP server",
-    version = "0.0.2",
+    version = "0.0.6",
     url = "http://www.marauders-map.com"
 }
 
-new Handle:gSocket = INVALID_HANDLE;   // reusable socket
+new Handle:gSocket; // reusable socket
 
 // Called when plugin is fully initialized
 // http://docs.sourcemod.net/api/index.php?fastload=show&id=575&
 public OnPluginStart()
 {
     SetupSocket();
-    CreateTimer(UPDATE_RATE, GetPlayerPositions, _, TIMER_REPEAT); // Call GetPlayerPositions every UPDATE_RATE seconds
+
+    CreateTimer(UPDATE_RATE, GetPlayerPositions, _, TIMER_REPEAT);
 }
 
 
 public Action:GetPlayerPositions(Handle:timer)
 {
     if (!SocketIsConnected(gSocket)) {
-        PrintToChatAll("[%s] GetPlayerPositions: Socket not connected. Attempting to re-establish...", PLUGIN_NAME);
         SetupSocket();
         return Plugin_Continue;
     }
 
     new clientId = 1,
-        maxClients = GetClientCount(),
         team = 0,
         bomb = 0,
-        alive = 0;
+        dead = 0;
 
     new Float:pos[3];
-    
-    for (; clientId <= maxClients; clientId++) {
 
+    // Payload will be a JSON object, with an array of objects
+    decl String:payload[32*1024];
+    StrCat(payload, sizeof(payload), "{\"pos\":[");
+
+    decl String:allPlayersInfo[MaxClients+1][1024];
+
+    // Loop through all players and collect their info
+    for (; clientId <= MaxClients; clientId++) {
+
+        if (!IsClientInGame(clientId) && GetClientTeam) {
+            continue;
+        }
+        
+        // Get player's position (x,y,z)
         GetEntPropVector(clientId, Prop_Send, "m_vecOrigin", pos);
-        decl String:playerName[32];
-        GetClientName(clientId, playerName, sizeof(playerName));
-        team = GetClientTeam(clientId);
+
+        // Is player carrying the bomb?
         bomb = (GetPlayerWeaponSlot(clientId, 4) != -1) ? 1: 0;
-        alive = IsPlayerAlive(clientId) ? 1 : 0;
-        decl String:requestStr[175];
-        Format(requestStr
-                , sizeof(requestStr)
-                , "{\"type\":\"pos\",\"name\":\"%s\",\"id\":%d,\"team\":%d,\"bomb\":%d,\"alive\":%d,\"pos\":{\"x\":%f,\"y\":%f}}\r\n"
-                , playerName
+
+        // Get player's team
+        team = GetClientTeam(clientId);
+
+        // Is player alive?
+        dead = IsPlayerAlive(clientId) ? 0 : 1;
+
+        // Create a JSON object containing player info
+        decl String:playerInfo[1024];
+        Format(playerInfo
+                , sizeof(playerInfo)
+                , "{\"id\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f}}"
                 , clientId
-                , team
+                , dead
                 , bomb
-                , alive
+                , team
                 , pos[0], pos[1]
         );
 
-        SocketSend(gSocket, requestStr);
+        // Append json object to payload
+        StrCat(payload, sizeof(payload), playerInfo);
     }
+
+    // Close JSON object, add CRLF delimeter
+    StrCat(payload, sizeof(payload), "]}\r\n");
+
+    // Send data to HOSTNAME:PORT via TCP
+    SocketSend(gSocket, payload);    
 
     return Plugin_Continue;
 }
 
 
 // Set up a resusable socket
-public SetupSocket()
-{
+public SetupSocket() {
     // Create a re-usable socket
     gSocket = SocketCreate(SOCKET_TCP, OnSocketError);
 
@@ -88,9 +109,7 @@ public SetupSocket()
 
 
 // Callback when a socket is connected
-public OnSocketConnected(Handle:socket, any:hFile) {
-    PrintToChatAll("[%s] OnSocketConnected: Connection established to %s:%d", PLUGIN_NAME, HOSTNAME, PORT);
-}
+public OnSocketConnected(Handle:socket, any:hFile) {}
 
 
 // Callback when a socket receives a chunk of data
@@ -101,8 +120,6 @@ public OnSocketReceive(Handle:socket, String:receiveData[], const dataSize, any:
 public OnSocketDisconnected(Handle:socket, any:hFile) {
     CloseHandle(socket);
 
-    PrintToChatAll("[%s] OnSocketDisconnected: Attempting to re-establish connection...", PLUGIN_NAME);
-    
     // Don't ever leave me
     SetupSocket();
 }
@@ -111,9 +128,6 @@ public OnSocketDisconnected(Handle:socket, any:hFile) {
 // Callback when a socket error occurs
 public OnSocketError(Handle:socket, const errorType, const errorNum, any:hFile) {
     CloseHandle(socket);
-    
-    LogError("socket error %d (errno %d)", errorType, errorNum);
-    PrintToChatAll("[%s] OnSocketError: %d (errno %d). Attempting to re-establish connection...", PLUGIN_NAME, errorType, errorNum);
     
     SetupSocket();
 }
