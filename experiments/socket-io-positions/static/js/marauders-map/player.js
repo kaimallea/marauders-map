@@ -69,11 +69,18 @@ var Player = Backbone.Model.extend({
     scalePosition: function () {
         var pos = this.get('pos');
         
+        // Reverse y
+        pos.y = -pos.y;
+
         pos.x += 4096;
         pos.y += 4096;
         pos.x /= 8;
         pos.y /= 8;
     
+        // azk-level accuracy
+        pos.x *= 1.035;
+        pos.y *= 1.035;
+
         return pos;
     },
 
@@ -93,7 +100,7 @@ var Player = Backbone.Model.extend({
 
         console.log(attrs);
 
-        this.get('marker').attr(attrs);
+        this.get('marker').animate(attrs, 200, 'ease-int-out');
     }
 });
 
