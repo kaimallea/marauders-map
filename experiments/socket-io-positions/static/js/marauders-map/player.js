@@ -27,9 +27,15 @@ var Player = Backbone.Model.extend({
     
     initialize: function () {
         var team = this.get('team'),
-            markerImg = ['', '', 't_marker.svg', 'ct_marker.svg'];
+            markerImg = [
+                '../img/t_marker.svg',
+                '../img/t_marker.svg',
+                '../img/t_marker.svg',
+                '../img/ct_marker.svg'
+            ];
 
-        this.set('marker', MAP.image('../img/' + markerImg[team], 0, 0, 8, 10).attr({opacity:0}));
+        //this.set('marker', MAP.image(markerImg[team], 0, 0, 8, 10).attr({opacity:0}));
+        this.set('marker', MAP.circle(0, 0, 5).attr({opacity:0}));
         this.on('change', function () { this.draw(); });
         this.draw();
     },
@@ -97,13 +103,15 @@ var Player = Backbone.Model.extend({
 
         if (!this.isDead()) {
             var pos = this.scalePosition();
-            attrs.x = pos.x - this.get('marker').width;
-            attrs.y = pos.y - this.get('marker').height;
+            attrs.cx = pos.x;
+            attrs.cy = pos.y;
+            //attrs.x = (pos.x - this.get('marker').width);
+            //attrs.y = (pos.y - this.get('marker').height);
         }
 
         //console.log(attrs);
 
-        this.get('marker').animate(attrs, 200, 'ease-int-out');
+        this.get('marker').animate(attrs, 200, 'ease-in-out');
     }
 });
 
