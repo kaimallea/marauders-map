@@ -26,7 +26,10 @@ var Player = Backbone.Model.extend({
     },
     
     initialize: function () {
-        this.set('marker', MAP.circle(0, 0, 8).attr({opacity:0}));
+        var team = this.get('team'),
+            markerImg = ['', '', 't_marker.svg', 'ct_marker.svg'];
+
+        this.set('marker', MAP.image('../img/' + markerImg[team], 0, 0, 8, 10).attr({opacity:0}));
         this.on('change', function () { this.draw(); });
         this.draw();
     },
@@ -94,11 +97,11 @@ var Player = Backbone.Model.extend({
 
         if (!this.isDead()) {
             var pos = this.scalePosition();
-            attrs.cx = pos.x;
-            attrs.cy = pos.y;
+            attrs.x = pos.x - this.get('marker').width;
+            attrs.y = pos.y - this.get('marker').height;
         }
 
-        console.log(attrs);
+        //console.log(attrs);
 
         this.get('marker').animate(attrs, 200, 'ease-int-out');
     }
