@@ -9,7 +9,9 @@
         <script>
             // *** RALPHAELJS CODE ***
             var MAP = Raphael(0, 0, 1024, 1024);
-            var IMG = MAP.image('/img/de_dust2_se_radar.svg', 0, 0, 1024, 1024);
+
+            // Dust2 specific MAP SVG configuration
+            var IMG = MAP.image('/img/de_dust2_se_radar.svg', 1656/8, 707/8, 590, 590);
         </script>
         <script src="/js/underscore-min.js"></script>
         <script src="/js/backbone-min.js"></script>
