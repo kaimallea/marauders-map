@@ -5,7 +5,7 @@
 #define PLUGIN_NAME "MMap"
 #define HOSTNAME    "127.0.0.1"
 #define PORT        1338
-#define UPDATE_RATE 1.0   // Seconds
+#define UPDATE_RATE 0.20   // Seconds
 
 public Plugin:myinfo = 
 {
@@ -42,9 +42,9 @@ public Action:GetPlayerPositions(Handle:timer)
         team = 0,
         bomb = 0,
         dead = 0,
-        total = 0;
-
-    new Float:pos[3];
+        total = 0,
+        Float:pos[3],
+        Float:ang[3];
 
 
     //PrintToChatAll("GetPlayerPositions(): Attempting to allocate %d bytes", (32+1)*128);
@@ -85,15 +85,19 @@ public Action:GetPlayerPositions(Handle:timer)
         // Is player alive?
         dead = IsPlayerAlive(clientId) ? 0 : 1;
     
+        // Get player angles
+        GetClientEyeAngles(clientId, ang);
+
         decl String:playerInfo[128];
         // Create a JSON object containing player info
         Format(playerInfo
                 , sizeof(playerInfo)
-                , "{\"cd\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f}}"
+                , "{\"cd\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"y\":%f,\"pos\":{\"x\":%f,\"y\":%f}}"
                 , clientId
                 , dead
                 , bomb
                 , team
+                , ang[1]
                 , pos[0], pos[1]
         );
 

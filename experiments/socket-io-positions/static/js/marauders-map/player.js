@@ -19,6 +19,9 @@ var Player = Backbone.Model.extend({
 
         bomb: 0,
 
+        // yaw
+        y: 0,
+
         // Current position on map
         pos: {
             x: 0, y: 0
