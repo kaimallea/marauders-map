@@ -31,14 +31,14 @@ var Player = Backbone.Model.extend({
     initialize: function () {
         var team = this.get('team'),
             markerImg = [
-                '../img/t_marker.svg',
-                '../img/t_marker.svg',
-                '../img/t_marker.svg',
-                '../img/ct_marker.svg'
+                'http://socialpie.org:1337/img/t_marker.svg',
+                'http://socialpie.org:1337/img/t_marker.svg',
+                'http://socialpie.org:1337/img/t_marker.svg',
+                'http://socialpie.org:1337/img/ct_marker.svg'
             ];
 
-        //this.set('marker', MAP.image(markerImg[team], 0, 0, 8, 10).attr({opacity:0}));
-        this.set('marker', MAP.circle(0, 0, 5).attr({opacity:0}));
+        this.set('marker', MAP.image(markerImg[team], 0, 0, 10, 12).attr({opacity:0}));
+        //this.set('marker', MAP.circle(0, 0, 5).attr({opacity:0}));
         this.on('change', function () { this.draw(); });
         this.draw();
     },
@@ -46,7 +46,7 @@ var Player = Backbone.Model.extend({
 
     opacity: function () {
         if (this.isDead()) {
-            return 0.5;
+            return 0.3;
         }
 
         var opacity = [0, 0, 1, 1],
@@ -106,10 +106,18 @@ var Player = Backbone.Model.extend({
 
         if (!this.isDead()) {
             var pos = this.scalePosition();
-            attrs.cx = pos.x;
-            attrs.cy = pos.y;
-            //attrs.x = (pos.x - this.get('marker').width);
-            //attrs.y = (pos.y - this.get('marker').height);
+            var yaw = this.get('y');
+            
+            yaw = -yaw;
+            yaw += 90;
+
+            //this.get('marker').translate(pos.x, pos.y);
+            //attrs.cx = pos.x;
+            //attrs.cy = pos.y;
+            attrs.x = pos.x - 10;
+            attrs.y = pos.y - 12;
+            attrs.transform = 'r' + yaw;
+            //console.log(pos.x, pos.y, yaw);
         }
 
         //console.log(attrs);
