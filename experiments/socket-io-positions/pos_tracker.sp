@@ -12,7 +12,7 @@ public Plugin:myinfo =
     name = "Position Tracker Experiment",
     author = "Kai Mallea <kmallea@gmail.com>",
     description = "Test sending location of all clients to TCP server",
-    version = "0.0.8",
+    version = "0.0.9",
     url = "http://www.marauders-map.com"
 }
 
@@ -92,13 +92,13 @@ public Action:GetPlayerPositions(Handle:timer)
         // Create a JSON object containing player info
         Format(playerInfo
                 , sizeof(playerInfo)
-                , "{\"cd\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"y\":%f,\"pos\":{\"x\":%f,\"y\":%f}}"
+                , "{\"id\":%d,\"dead\":%d,\"bomb\":%d,\"team\":%d,\"pos\":{\"x\":%f,\"y\":%f,\"a\":%f}}"
                 , clientId
                 , dead
                 , bomb
                 , team
-                , ang[1]
                 , pos[0], pos[1]
+                , ang[1]
         );
 
         StrCat(payload, sizeof(payload), playerInfo);

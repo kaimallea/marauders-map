@@ -6,36 +6,7 @@
     </head>
     <body>
         <script src="/js/raphael-min.js"></script>
-        <script>
-            // *** RALPHAELJS CODE ***
-            var MAP = Raphael(0, 0, 1024, 1024);
-
-            // Dust2 specific MAP SVG configuration
-            var IMG = MAP.image('/img/de_dust2_se_radar.svg', 1656/8, 707/8, 590, 590);
-        </script>
-        <script src="/js/underscore-min.js"></script>
-        <script src="/js/backbone-min.js"></script>
-        <script src="/js/marauders-map/player.js"></script>
-        <script src="/js/marauders-map/app.js"></script>
-        <script src="/socket.io/socket.io.js"></script>
-        <script>            
-            // *** SOCKETIO CODE ***
-            var socket = io.connect('http://198.74.56.175');
-            socket.on('positions', function (data) {
-                var i = 0,
-                    len = data.pos.length;
-
-                for (; i < len; i++) {
-                    // Does this player exist? 
-                    var existingPlayer = playerCollection.where({'cd': data.pos[i].cd});
-
-                    if (existingPlayer.length) { // Yes
-                        existingPlayer[0].set(data.pos[i]);
-                    } else { // No
-                        playerCollection.add(data.pos[i]);
-                    }                    
-                }
-            });
-        </script>
+        <script src="/js/Player.js"></script>
+        <script src="/js/SocketIOClient.js"></script>
     </body>
 </html>
