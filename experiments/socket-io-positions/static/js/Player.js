@@ -7,14 +7,23 @@ var	TERRORIST 			= 1 << 0,	// Player is a CT
 
 var PLAYERS_INDEX = [];	// Global array containing all player instances
 
+var MAP_OFFSET = { // de_dust2_se
+	x: -2440,
+	y: 3380
+};
 
+//32768 (+/- 16384)
+// 2426
+// 2048, -1107/8
+//
 // Main SVG canvas (Raphael "Paper")
-var PAPER = Raphael(0, 0, 512, 512);
-
+var PAPER = Raphael(0, 0, 640, 640).setViewBox(0, 0, 4500, 4500); // 2096, 1120
 
 // SVG image of the map
-var MAP = PAPER.image('de_dust2_se_radar.svg', 0, 0, 512, 512);
+var MAP = PAPER.image('/img/de_dust2_se_radar.svg', 0, 0, 4500, 4500);
 
+// Default marker each player clones from
+var DEFAULT_MARKER = PAPER.circle(0, 0, 25).hide();
 
 // Player constructor
 function Player (obj) {
@@ -33,6 +42,8 @@ function Player (obj) {
 		a: obj.pos.a 			// Yaw; direction player is looking (in degrees)
 	};
 
+	this.marker = DEFAULT_MARKER.clone().show();
+
 	switch ( parseInt(obj.team, 10) ) {
 		case 2:
 			this.flags |= TERRORIST;
@@ -48,6 +59,8 @@ function Player (obj) {
 	} else {
 		throw Error('Duplicate Player ID: ' + id);
 	}
+
+	this.draw();
 }
 
 
@@ -57,12 +70,20 @@ function Player (obj) {
  */
 Player.prototype.getScreenCoordinates = function (screenWidth, screenHeight) {
 
+	var y = this.position.y,
+		offsetY = MAP_OFFSET.y;
+
+	if (y < 0) {
+		y = Math.abs(y) + (offsetY * 2);
+	} else {
+		y = offsetY + (offsetY - y);
+	}
+
 	return {
-		x: (this.position.x + 4096) / (8192 / screenWidth),
-		y: (-this.position.y + 4096) / (8192 / screenHeight),
+		x: this.position.x,
+		y: y,
 		a: (-this.position.a + 90)
 	};
-
 };
 
 
@@ -73,8 +94,8 @@ Player.prototype.getScreenCoordinates = function (screenWidth, screenHeight) {
  * 3 = CT
  */
 Player.prototype.getTeam = function () {
-	return 	this.flags & COUNTER_TERRORIST ? 2 :
-			this.flags & TERRORIST ? 3 :
+	return 	this.flags & COUNTER_TERRORIST ? 3 :
+			this.flags & TERRORIST ? 2 :
 			-1;
 };
 
@@ -84,7 +105,7 @@ Player.prototype.getTeam = function () {
  *
  */
 Player.prototype.isDead = function () {
-	return this.flags & IS_DEAD;
+	return this.flags & DEAD;
 };
 
 
@@ -102,13 +123,34 @@ Player.prototype.hasBomb = function () {
  *
  */
 Player.prototype.updatePosition = function (obj) {
-	this.pos = obj.pos;
+	this.position = obj.pos;
 
 	if (obj.dead) {
-		this.flags |= IS_DEAD;
+		this.flags |= DEAD;
 	} else {
-		this.flags &= ~IS_DEAD;
+		this.flags &= ~DEAD;
 	}
+
+	this.draw();
+};
+
+
+Player.prototype.draw = function () {
+	var colors = ['gray', 'gray', 'red', 'blue'],
+		coords = this.getScreenCoordinates(640, 640),
+		teamColor;
+
+	if ( !(teamColor = this.getTeam()) ) {
+		return; 
+	}
+
+	this.marker.animate({
+		fill: colors[teamColor],
+		opacity: (this.isDead() ? 0.3 : 1),
+		cx: coords.x,
+		cy: coords.y,
+		transform: 't' + Math.abs(MAP_OFFSET.x) + ',' + -MAP_OFFSET.y
+	}, 200, 'ease-in-out');
 };
 
 

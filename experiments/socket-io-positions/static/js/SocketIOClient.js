@@ -4,18 +4,21 @@ var SOCKET_IO_HOST  = '198.74.56.175',
 
 // Callback when positions are updated
 function onPositionUpdate (data) {
-    var i = data.pos.length;
-    while (i >= 0) {
-        var id = data.pos[i].id,
-            dataset = data.pos[i];
+    var len;
+    if ( !(len = data.pos.length) ) { return; }
 
-        if ((var p = PLAYERS_INDEX[id])) {
+    while (len >= 1) {
+        var id = data.pos[len-1].id,
+            dataset = data.pos[len-1],
+            p = PLAYERS_INDEX[id];
+
+        if (p) {
             p.updatePosition(dataset);
         } else {
             PLAYERS_INDEX[id] = new Player(dataset);
         }
 
-        --i;
+        --len;
     }    
 }
 
@@ -30,3 +33,5 @@ function initSocket () {
     // Listen for name changes
     //SOCKET.on('names', onNameUpdate);
 }
+
+initSocket();
