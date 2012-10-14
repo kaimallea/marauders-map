@@ -12,12 +12,8 @@ var MAP_OFFSET = { // de_dust2_se
 	y: 3380
 };
 
-//32768 (+/- 16384)
-// 2426
-// 2048, -1107/8
-//
 // Main SVG canvas (Raphael "Paper")
-var PAPER = Raphael(0, 0, 640, 640).setViewBox(0, 0, 4500, 4500); // 2096, 1120
+var PAPER = Raphael(0, 0, 640, 640).setViewBox(0, 0, 4500, 4500);
 
 // SVG image of the map
 var MAP = PAPER.image('/img/de_dust2_se_radar.svg', 0, 0, 4500, 4500);
