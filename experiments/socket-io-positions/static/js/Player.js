@@ -168,7 +168,8 @@ Player.prototype.draw = function () {
  *
  */
 Player.prototype.setName = function (name) {
-	this.name = name;
+    this.name = name;
+    this.nameEl.attr({text:name});
 };
 
 
