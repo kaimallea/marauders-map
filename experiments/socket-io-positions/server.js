@@ -38,7 +38,15 @@ var dataProcessor = function (data) {
             return;
         }
 
-        webSocketServer.sockets.emit('positions', json);
+        var key = Object.getOwnPropertyNames(json)[0];
+        switch (key) {
+            case 'pos':
+                webSocketServer.sockets.emit('positions', json);
+                break;
+            case 'names':
+                webSocketServer.sockets.emit('names', json);
+                break;
+        }
 
         console.log(json);
     }

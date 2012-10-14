@@ -6,6 +6,7 @@
 #define HOSTNAME    "127.0.0.1"
 #define PORT        1338
 #define UPDATE_RATE 0.20   // Seconds
+#define NAME_UPDATE_RATE 10.0 // seconds
 
 public Plugin:myinfo = 
 {
@@ -25,6 +26,57 @@ public OnPluginStart()
     SetupSocket();
 
     CreateTimer(UPDATE_RATE, GetPlayerPositions, _, TIMER_REPEAT);
+    CreateTimer(NAME_UPDATE_RATE, GetNames, _, TIMER_REPEAT);    
+}
+
+
+public Action:GetNames(Handle:timer)
+{
+    if (!SocketIsConnected(gSocket)) {
+        return Plugin_Continue;
+    }
+
+    new clientId = 1,
+        total = 0;
+
+    new String:payload[(32*64)];
+
+    StrCat(payload, sizeof(payload), "{\"names\":[");
+
+    for (; clientId <= MaxClients; clientId++) {
+        if (!IsClientInGame(clientId)) {
+            continue;
+        }    
+   
+        if (++total > 1) {
+            StrCat(payload, sizeof(payload), ",");
+        }
+
+        decl String:name[32];
+        GetClientName(clientId, name, sizeof(name));
+        
+        decl String:playerName[64];
+        Format(playerName
+                , sizeof(playerName)
+                , "{\"id\":%d,\"name\":\"%s\"}"
+                , clientId
+                , name
+        );
+
+
+        StrCat(payload, sizeof(payload), playerName);
+    
+    }
+
+    if (!total) {
+        return Plugin_Continue;
+    }
+
+    StrCat(payload, sizeof(payload), "]}\r\n");
+
+    SocketSend(gSocket, payload);
+
+    return Plugin_Continue;
 }
 
 
