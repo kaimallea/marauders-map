@@ -3,14 +3,9 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 width="8px" height="10.09px" viewBox="0 0 8 10.09" enable-background="new 0 0 8 10.09" xml:space="preserve">
-<g>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#E6E7E8" d="M4,10.053c2.16,0,3.921-1.762,3.921-3.921
-		c0-2.16-1.762-3.921-3.921-3.921c-2.16,0-3.921,1.761-3.921,3.921C0.079,8.292,1.84,10.053,4,10.053z"/>
-	<polygon fill-rule="evenodd" clip-rule="evenodd" fill="#E6E7E8" points="0.573,5.069 7.424,5.069 7.424,5.069 4,0.037 
-		0.573,5.069 	"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#C7572B" d="M4,9.687c1.958,0,3.554-1.598,3.554-3.555
-		c0-1.958-1.597-3.555-3.554-3.555c-1.958,0-3.555,1.597-3.555,3.555C0.445,8.089,2.042,9.687,4,9.687z"/>
-	<polygon fill-rule="evenodd" clip-rule="evenodd" fill="#C7572B" points="1.573,4.335 6.427,4.335 6.427,4.335 4,0.771 
-		1.573,4.335 	"/>
-</g>
+<path fill="#E6E7E8" d="M4,10.053c2.16,0,3.921-1.762,3.921-3.921c0-2.16-1.762-3.921-3.921-3.921c-2.16,0-3.921,1.761-3.921,3.921
+	C0.079,8.292,1.84,10.053,4,10.053z"/>
+<polygon fill="#E6E7E8" points="0.573,5.069 7.424,5.069 7.424,5.069 4,0.037 "/>
+<path fill="#C7572B" d="M4,9.332c1.762,0,3.199-1.439,3.199-3.2C7.199,4.37,5.762,2.933,4,2.933c-1.762,0-3.199,1.437-3.199,3.199
+	C0.801,7.893,2.238,9.332,4,9.332z"/>
 </svg>
