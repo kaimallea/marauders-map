@@ -13,13 +13,18 @@ var MAP_OFFSET = { // de_dust2_se
 };
 
 // Main SVG canvas (Raphael "Paper")
-var PAPER = Raphael(0, 0, 640, 640).setViewBox(0, 0, 4500, 4500);
+var PAPER = Raphael(0, 0, 768, 768).setViewBox(0, 0, 4500, 4500);
 
 // SVG image of the map
 var MAP = PAPER.image('/img/de_dust2_se_radar.svg', 0, 0, 4500, 4500);
 
+var MARKER_WIDTH = 90,
+    MARKER_HEIGHT = 92;
+
 // Default marker each player clones from
-var DEFAULT_MARKER = PAPER.circle(0, 0, 25).hide();
+var T_MARKER = PAPER.image('/img/t_marker.svg', 0, 0, MARKER_WIDTH, MARKER_HEIGHT).hide();
+var CT_MARKER = PAPER.image('/img/ct_marker.svg', 0, 0, MARKER_WIDTH, MARKER_HEIGHT).hide();
+
 
 // Player constructor
 function Player (obj) {
@@ -32,21 +37,30 @@ function Player (obj) {
 	
 	this.name = '';				// In-game name
 	
+	this.nameEl = PAPER.text(0, 0, 'Player')
+                        .attr({
+                            'font-size':'60em',
+                            'fill': 'black',
+                            'stroke': 'white'
+                        });
+
 	this.position = { 			// Actual in-game position
 		x: obj.pos.x, 	
 		y: obj.pos.y,
 		a: obj.pos.a 			// Yaw; direction player is looking (in degrees)
 	};
 
-	this.marker = DEFAULT_MARKER.clone().show();
-
 	switch ( parseInt(obj.team, 10) ) {
 		case 2:
-			this.flags |= TERRORIST;
-			break;
+            this.flags |= TERRORIST;
+            this.marker = T_MARKER.clone().show();
+            break;
 		case 3:
-			this.flags |= COUNTER_TERRORIST;
-			break;
+            this.flags |= COUNTER_TERRORIST;
+            this.marker = CT_MARKER.clone().show();
+            break;
+		default:
+            this.marker = CT_MARKER.clone().show();
 	}
 
 
@@ -132,19 +146,18 @@ Player.prototype.updatePosition = function (obj) {
 
 
 Player.prototype.draw = function () {
-	var colors = ['gray', 'gray', 'red', 'blue'],
-		coords = this.getScreenCoordinates(),
-		teamColor;
-
-	if ( !(teamColor = this.getTeam()) ) {
-		return; 
-	}
+	var coords = this.getScreenCoordinates();
 
 	this.marker.animate({
-		fill: colors[teamColor],
 		opacity: (this.isDead() ? 0.3 : 1),
-		cx: coords.x,
-		cy: coords.y,
+		x: coords.x - (MARKER_WIDTH/2),
+		y: coords.y - (MARKER_HEIGHT/2),
+		transform: 't' + Math.abs(MAP_OFFSET.x) + ',' + -MAP_OFFSET.y + 'r' + coords.a
+	}, 200, 'ease-in-out');
+
+	this.nameEl.animate({
+		x: coords.x,
+		y: coords.y + MARKER_HEIGHT,
 		transform: 't' + Math.abs(MAP_OFFSET.x) + ',' + -MAP_OFFSET.y
 	}, 200, 'ease-in-out');
 };
