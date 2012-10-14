@@ -64,7 +64,7 @@ function Player (obj) {
  * Return game coords converted to screen coords
  *
  */
-Player.prototype.getScreenCoordinates = function (screenWidth, screenHeight) {
+Player.prototype.getScreenCoordinates = function () {
 
 	var y = this.position.y,
 		offsetY = MAP_OFFSET.y;
@@ -133,7 +133,7 @@ Player.prototype.updatePosition = function (obj) {
 
 Player.prototype.draw = function () {
 	var colors = ['gray', 'gray', 'red', 'blue'],
-		coords = this.getScreenCoordinates(640, 640),
+		coords = this.getScreenCoordinates(),
 		teamColor;
 
 	if ( !(teamColor = this.getTeam()) ) {
