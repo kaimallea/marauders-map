@@ -7,16 +7,22 @@ var	TERRORIST 			= 1 << 0,	// Player is a CT
 
 var PLAYERS_INDEX = [];	// Global array containing all player instances
 
-var MAP_OFFSET = { // de_dust2_se
-	x: -2440,
-	y: 3380
+//var MAP_OFFSET = { // de_dust2_se
+//	x: -2440,
+//	y: 3380
+//};  4500, 4500
+
+var MAP_OFFSET = { // de_train_se
+	x: -2050,
+	y: 2300
 };
 
+
 // Main SVG canvas (Raphael "Paper")
-var PAPER = Raphael(0, 0, 768, 768).setViewBox(0, 0, 4500, 4500);
+var PAPER = Raphael(0, 0, 768, 768).setViewBox(0, 0, 4100, 4100);
 
 // SVG image of the map
-var MAP = PAPER.image('/img/de_dust2_se_radar.svg', 0, 0, 4500, 4500);
+var MAP = PAPER.image('/img/de_train_se_radar.svg', 0, 0, 4100, 4100);
 
 var MARKER_WIDTH = 90,
     MARKER_HEIGHT = 92;
