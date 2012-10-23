@@ -25,7 +25,7 @@
     </defs>
 
     <!-- Map SVG serves as background image -->
-    <image xlink:href="/img/de_dust2_se_radar.svg" x="0" y="0" width="4500" height="4500" preserveAspectRatio="none" />
+    <image xlink:href="/svg/de_dust2_se_radar.svg" x="0" y="0" width="4500" height="4500" preserveAspectRatio="none" />
 
     <!-- Players should be draw with translations -->
     <!-- <use id="kai" xlink:href="#t" x="-2440" y="3380" transform="translate(2440,-3380)" /> -->
