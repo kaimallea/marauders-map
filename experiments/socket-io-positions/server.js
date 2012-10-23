@@ -10,11 +10,11 @@ var HTTP_PORT = 1337,
 var http = require('http'),
     net = require('net'),
     express = require('express'),
-    webapp = express(), // func call
-    io = require('socket.io');
+    webapp = express(); // func call
+    //io = require('socket.io');
 
 var httpServer = http.createServer(webapp);
-var webSocketServer = io.listen(httpServer);
+//var webSocketServer = io.listen(httpServer);
 var tcpServer = net.createServer(function (socket) {
     socket.setKeepAlive(true, 5);
     socket.setEncoding('utf-8');

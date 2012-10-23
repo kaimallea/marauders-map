@@ -1,0 +1,3 @@
+html, body, svg {margin:0;padding:0;}
+.container {width:640px;margin:50px auto;}
+.map {margin:0 auto;border-radius:8px;box-shadow:10px 10px 5px rgba(0,0,0,0.5);}
