@@ -2,8 +2,8 @@
  * Server ports
  */
 var HTTP_PORT = 1337,
-    TCP_PORT = 1338;
-
+    TCP_PORT = 1338,
+    DB_PORT = 5984; //default couch port, might want to change later
 /**
  * Required includes
  */
@@ -11,7 +11,8 @@ var http = require('http'),
     net = require('net'),
     express = require('express'),
     webapp = express(), // func call
-    io = require('socket.io');
+    io = require('socket.io'),
+    cradle = require('cradle');
 
 var httpServer = http.createServer(webapp);
 var webSocketServer = io.listen(httpServer);
@@ -20,6 +21,29 @@ var tcpServer = net.createServer(function (socket) {
     socket.setEncoding('utf-8');
     socket.on('data', dataProcessor);
 });
+
+//some couch/cradle specific vars
+cradle.setup({
+    host: '192.168.234.92',
+    cache: true,
+    raw: false,
+    });
+
+var c = new(cradle.Connection);
+var db = c.database('google-strike');
+
+//checks if db exists, if not, creates.
+db.exists(function(err, exists) {
+    if (err) {
+        console.log('error', err);
+    } else if (exists) {
+      console.log('lets go googlin');
+    } else {
+      console.log('db does not exist, creating...');
+      db.create();
+    }
+});
+
 
 var buffer = ''; // buffer for incoming packet data
 var dataProcessor = function (data) {
