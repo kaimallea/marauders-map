@@ -1,9 +1,24 @@
-var SOCKET_IO_HOST  = '198.74.56.175',
-    SOCKET;
+/**
+ * This file is a web worker
+ */
+importScripts('/socket.io/socket.io.js');
+
+addEventListener('message', function (e) {
+    var data = e.data;
+    switch (data.cmd) {
+        case 'start':
+            initSocket();
+            break;
+        default:
+            break;
+    }
+});
 
 
 // Callback when positions are updated
 function onPositionUpdate (data) {
+    postMessage(data);
+    return;
     var len;
     if ( !(len = data.pos.length) ) { return; }
 
@@ -40,15 +55,10 @@ function onNamesUpdate (data) {
     }
 }
 
+
 // Initialize web socket communication
-function initSocket () {
-    SOCKET = io.connect('http://' + SOCKET_IO_HOST);
-
-    // Listen for position updates
-    SOCKET.on('positions', onPositionUpdate);
-
-    // Listen for name changes
-    SOCKET.on('names', onNamesUpdate);
-}
-
-initSocket();
+(function initSocket () {
+    io.connect('http://' + location.hostname)
+        .on('position', onPositionUpdate)
+        .on('names', onNameUpdate);
+}());

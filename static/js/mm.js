@@ -3,17 +3,21 @@
  */
 (function (global) {
     'use strict';
-
+/*
     var SVGDOC      = document.getElementById('map').getSVGDocument(), // #Document
         T_MARKER    = SVGDOC.getElementById('t'), // <g id="t">...</g>
         CT_MARKER   = SVGDOC.getElementById('ct'); // <g id="ct">...</g>
+*/
+    var positionWorker = new Worker('/js/SocketIOClient.js');
 
-    var EVENTS_WORKER = new Worker('/js/workers/events-worker.js');
+
+    function updatePosition(message) {
+        console.log(message.data);
+    }
 
 
     function init () {
-        EVENTS_WORKER.addEventListener('position', updatePosition);
-        EVENTS_WORKER.addEventListener('', updatePosition);
+        positionWorker.addEventListener('message', updatePosition, false);
     }
 
     init();

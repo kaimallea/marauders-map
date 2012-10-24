@@ -9,7 +9,7 @@
 public Plugin:myinfo = 
 {
     name = "Marauder's Map",
-    author = "WP",
+    author = "Kai Mallea, Anton Ásgeirsson",
     description = "Marauder's Map: CS:GO",
     version = PLUGIN_VERSION,
     url = "http://www.marauders-map.com"
