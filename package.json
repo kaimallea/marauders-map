@@ -1,7 +1,7 @@
 {
     "name": "marauders-map",
     "description": "CS:GO Awesomeness",
-    "author": "Kai",
+    "author": "Kai Mallea, Anton Ásgeirsson",
     "version": "0.0.1",
     "dependencies": {
         "express": ">= 3.x.x",
