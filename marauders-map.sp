@@ -40,7 +40,7 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
         decl String:playerInfo[64];
         Format(playerInfo
                 , sizeof(playerInfo)
-                , "%d,%d,%d,%f,%f,%f,%f" // id,team,bomb,x,y,z,yaw
+                , "p,%d,%d,%d,%f,%f,%f,%f" // p,id,team,bomb,x,y,z,yaw
                 , client, team, bomb, pos[0], pos[1], pos[2], ang[1]
         );
 
