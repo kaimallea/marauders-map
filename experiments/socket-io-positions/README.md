@@ -18,6 +18,7 @@ Once Node.js is installed, enter this directory and type the following:
 ```shell
 npm install express
 npm install socket.io
+npm install cradle
 ```
 
 This will install the dependencies into a `node_modules` directory.
