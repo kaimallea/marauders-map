@@ -12,7 +12,8 @@ var http = require('http'),
     express = require('express'),
     webapp = express(), // func call
     io = require('socket.io'),
-    cradle = require('cradle');
+    cradle = require('cradle'),
+    clc = require('cli-color');
 
 var httpServer = http.createServer(webapp);
 var webSocketServer = io.listen(httpServer);
@@ -21,6 +22,11 @@ var tcpServer = net.createServer(function (socket) {
     socket.setEncoding('utf-8');
     socket.on('data', dataProcessor);
 });
+
+//cli-color styling
+var error = clc.red.bold;
+var warn = clc.yellow;
+var notice = clc.blue;
 
 //some couch/cradle specific vars
 cradle.setup({
@@ -37,9 +43,9 @@ db.exists(function(err, exists) {
     if (err) {
         console.log('error', err);
     } else if (exists) {
-      console.log('lets go googlin');
+      console.log(notice('Lights, Camera, Counter!'));
     } else {
-      console.log('db does not exist, creating...');
+      console.log(warning('db does not exist, creating...'));
       db.create();
     }
 });
@@ -55,12 +61,21 @@ var dataProcessor = function (data) {
     if (packetEnd !== -1) {  // there's a complete packet in the buffer
         var json = buffer.slice(0, packetEnd); // extract complete part (which should be parsable json)
         buffer = buffer.slice(packetEnd+2); // chop off completed packet from buffer
+
         try {
             json = JSON.parse(json);
         } catch (e) {
             console.log('Bad json.\nAttempted to parse: ' + json + '\nCaptured Error: ' + e);
             return;
         }
+
+        db.save(json, function (err, res) {
+                if (err) {
+                    console.log(error('error', err));
+                } else {
+                    console.log(notice('Saved as', res));
+                }
+        });
 
         var key = Object.getOwnPropertyNames(json)[0];
         switch (key) {
