@@ -8,7 +8,7 @@ var http = require('http'),
     express = require('express'),
     io = require('socket.io'),
     util = require('util');
-
+    
 var webapp = express();
 var httpServer = http.createServer(webapp);
 var webSocketServer = io.listen(httpServer);
@@ -48,7 +48,7 @@ webapp.get('/', function (req, res) {
 
 // Handle incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
-    var data = msg.split(',');
+    var data = msg.toString().split(',');
 
     switch(data[0]) {
         // Positions
