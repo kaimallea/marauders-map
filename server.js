@@ -7,8 +7,10 @@ var http = require('http'),
     dgram = require('dgram'),
     express = require('express'),
     io = require('socket.io'),
-    util = require('util');
-    
+    util = require('util'),
+    cradle = require('cradle'),
+    clc = require('cli-color');
+
 var webapp = express();
 var httpServer = http.createServer(webapp);
 var webSocketServer = io.listen(httpServer);
@@ -45,8 +47,47 @@ webapp.get('/', function (req, res) {
     res.sendfile(__dirname + '/index.html');
 });
 
+// Cli-color styling
+var error = clc.red.bold;
+var warn = clc.yellow;
+var notice = clc.blue;
 
-// Handle incoming UDP packets
+// Some couch/cradle specific vars
+cradle.setup({
+    host: '192.168.234.92',
+    cache: true,
+    raw: false,
+    });
+
+var c = new(cradle.Connection);
+var db = c.database('google-strike');
+
+// Checks if db exists, if not, creates.
+db.exists(function(err, exists) {
+    if (err) {
+        console.log('error', err);
+    } else if (exists) {
+      console.log(notice('Lights, Camera, Counter!'));
+    } else {
+      console.log(warning('db does not exist, creating...'));
+      db.create();
+    }
+});
+
+// Database save method
+//
+// 
+//
+//db.save(json, function (err, res) {
+//    if (err) {
+//      console.log(error('error', err));
+//    } else {
+//        console.log(notice('Saved as', res));
+//    }
+//  });
+
+
+// le incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
     var data = msg.toString().split(',');
 
