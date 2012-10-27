@@ -20,10 +20,37 @@ new Handle:gSocket = INVALID_HANDLE;
 new bool:gReady = false;
 
 
+// Set up Event handlers for csgo specific events.
+
+
 public OnPluginStart()
 {
     gSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
     SocketConnect(gSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, PORT);
+    HookEvent("round_start", OnRoundEndCmd);
+}
+
+
+
+public Action:OnRoundEndCmd(Handle:event, const String:name[], bool:dontBroadcast)
+{
+    if (gReady)
+    {
+        decl winner, reason, String:message[64];
+        
+        winner = GetEventInt(event, "winner");
+        reason = GetEventInt(event, "reason");
+        GetEventString(event, "message", message, sizeof(message))
+        
+        decl String:roundInfo[64];
+        Format(roundInfo
+                , sizeof(roundInfo)
+                , "r,%d,%d,%s" // r,winner,reason,message
+                , winner, reason, message
+        );
+
+        SocketSend(gSocket, roundInfo);
+}
 }
 
 
@@ -45,7 +72,7 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
         );
 
         SocketSend(gSocket, playerInfo);
-    }
+}
 }
 
 

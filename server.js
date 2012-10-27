@@ -43,14 +43,14 @@ webapp.use(express.static(__dirname + '/static'));
 
 
 // HTTP requests to root should return index.html
-webapp.get('/', function (req, res) {
-    res.sendfile(__dirname + '/index.html');
+webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 });
 
 // Cli-color styling
-var error = clc.red.bold;
+var error = clc.red;
 var warn = clc.yellow;
 var notice = clc.blue;
+var green = clc.green;
 
 // Some couch/cradle specific vars
 cradle.setup({
@@ -65,9 +65,9 @@ var db = c.database('google-strike');
 // Checks if db exists, if not, creates.
 db.exists(function(err, exists) {
     if (err) {
-        console.log('error', err);
+        console.log('Error:', err);
     } else if (exists) {
-      console.log(notice('Lights, Camera, Counter!'));
+      console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
     } else {
       console.log(warning('db does not exist, creating...'));
       db.create();
@@ -94,10 +94,17 @@ udpServer.on('message', function (msg, rinfo) {
     switch(data[0]) {
         // Positions
         case 'p':
-            webSocketServer.sockets.emit('position',
-                // id,team,bomb,x,y,z,yaw
-                util.format('%d,%d,%d,%f,%f,%f,%f', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
-            );
+            //console.log(notice(data));
+            //webSocketServer.sockets.emit('position',
+            // id,team,bomb,x,y,z,yaw
+            //util.format('%d,%d,%d,%f,%f,%f,%f', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
+            //);
+            
+            break;
+        
+        case 'r':
+            
+            console.log(error(data));
             break;
 
         // Unknown
@@ -106,10 +113,10 @@ udpServer.on('message', function (msg, rinfo) {
 });
 
 udpServer.on('listening', function () {
-    console.log('UDP server listening on %d', UDP_PORT);
+    console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
 });
 
 httpServer.listen(HTTP_PORT);
-console.log('HTTP server listening on %d', HTTP_PORT);
+console.log(notice('HTTP') + ' server listening on' + notice(' %d'), HTTP_PORT);
 
 udpServer.bind(UDP_PORT);
