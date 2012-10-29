@@ -28,11 +28,13 @@ public OnPluginStart()
 {
     gSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
     SocketConnect(gSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, PORT);
-    HookEvent("hegrenade_detonate", EventHandler);
-    HookEvent("round_end", EventHandler);
-    HookEvent("game_newmap", EventHandler);
+//    HookEvent("hegrenade_detonate", EventHandler); //needs work
+//    HookEvent("round_end", EventHandler); //works
+//    HookEvent("game_newmap", EventHandler); //not working
     HookEvent("player_death", EventHandler);
-    HookEvent("player_blind", EventHandler);
+//    HookEvent("player_blind", EventHandler); //works
+//    HookEvent("weapon_fire", EventHandler); //needs work
+    HookEvent("player_hurt", EventHandler);
 }
 
 public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
@@ -51,7 +53,7 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         GetClientName(attacker, aname, sizeof(aname))
         GetClientName(victim, vname, sizeof(vname))
         PrintToServer(
-            "%s was killed by %s with a %s (headshot: %d)"
+            "%s was killed by %s with a %s (hs: %d)"
             , vname, aname, weapon, headshot
             )
     }
@@ -68,21 +70,19 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
             )
         
     }
-
     else if (StrEqual(name, "hegrenade_detonate")) //Not Working as intended
     {
         decl Float:pos[3], String:cname[64];
         new clientId = GetEventInt(event, "userid")
         new client = GetClientOfUserId(clientId)
         GetClientName(client, cname, sizeof(cname))
-        GetEntPropVector(event, Prop_Send, "m_vecOrigin", pos);
+        GetEntPropVector(clientId, Prop_Send, "m_vecOrigin", pos);
 
         PrintToServer(
             "%s's HE Grenade exploded @ X:%f, Y:%f, Z:%f"
             , cname, pos[0], pos[1], pos[2]
         )
     }
-
     else if (StrEqual(name, "game_newmap")) //Not Working at all
     {
         decl String:mapname[64]
@@ -92,7 +92,6 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
             , mapname
         )
     }
-    
     else if (StrEqual(name, "player_blind"))
     {
         decl String:cname[64];
@@ -104,31 +103,46 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
             , cname
             )
     }
+    else if (StrEqual(name, "weapon_fire"))
+    {
+        decl String:weapon[64], String:cname[64], Float:pos[3]; 
+        new clientId = GetEventInt(event, "userid")
+        new client = GetClientOfUserId(clientId)
+        new bool:silenced = GetEventBool(event, "silenced")
+        GetClientName(client, cname, sizeof(cname))
+        GetEntPropVector(clientId, Prop_Send, "m_vecOrigin", pos)
+        GetEventString(event, "weapon", weapon, sizeof(weapon));
+        PrintToServer(
+            "%s fired a %s (silenced: %d) from location: x:%fy:%fz:%f"
+            , cname, weapon, silenced, pos[0], pos[1], pos[2]
+        )
+
+    }
+    else if (StrEqual(name, "player_hurt"))
+    {
+        decl String:weapon[64], String:hitgroup[64];
+        new victimId = GetEventInt(event, "userid")
+        new attackerId = GetEventInt(event, "attacker")
+        new assistId = GetEventInt(event, "assister") 
+        new dmg_armor = GetEventInt(event, "dmg_armor")
+        new dmg_health = GetEventInt(event, "dmg_health")
+        new bool:headshot = GetEventBool(event, "headshot")
+        GetEventString(event, "weapon", weapon, sizeof(weapon))
+        GetEventString(event, "hitgroup", hitgroup, sizeof(hitgroup))
+
+        decl String:aname[64], String:vname[64], String:assname[64];
+        new victim = GetClientOfUserId(victimId)
+        new attacker = GetClientOfUserId(attackerId)
+        new assister = GetClientOfUserId(assistId)
+        GetClientName(attacker, aname, sizeof(aname))
+        GetClientName(victim, vname, sizeof(vname))
+        GetClientName(assister, assname, sizeof(assname))
+        PrintToServer(
+            " %s was shot in the %s by %s for %i ammount of dmg, there of %i armor. (hs: %d)"
+            , vname, hitgroup, aname, dmg_health, dmg_armor, headshot 
+        )
+    }
 }
-
-
-public MapName(Handle:event, const String:name[], bool:dontBroadcast)
-{
-    decl String:mapname[64]
-    GetEventString(event, "mapname", mapname, sizeof(mapname));
-    PrintToServer("The Current Map is: %s",mapname);
-
-//    if (gReady)
-//    {
-//        decl String:mapname[64];
-//        GetEventString(event, "mapname", mapname, sizeof(mapname))
-//        
-//        decl String:mapInfo[64];
-//        Format(mapInfo
-//            , sizeof(mapInfo)
-//            , "m,%s" // m, mapname
-//            , mapname
-//        );
-//
-//        SocketSend(gSocket, mapInfo);
-//}
-}
-
 
 
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
