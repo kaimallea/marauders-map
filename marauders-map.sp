@@ -1,3 +1,4 @@
+#include <sourcemod>
 #include <sdktools>
 #include <cstrike>
 #include <socket>
@@ -27,31 +28,107 @@ public OnPluginStart()
 {
     gSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
     SocketConnect(gSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, PORT);
-    HookEvent("round_start", OnRoundEndCmd);
+    HookEvent("hegrenade_detonate", EventHandler);
+    HookEvent("round_end", EventHandler);
+    HookEvent("game_newmap", EventHandler);
+    HookEvent("player_death", EventHandler);
+    HookEvent("player_blind", EventHandler);
 }
 
-
-
-public Action:OnRoundEndCmd(Handle:event, const String:name[], bool:dontBroadcast)
+public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
 {
-    if (gReady)
+    if (StrEqual(name, "player_death")) // Prints player_death info to server, Test
     {
-        decl winner, reason, String:message[64];
-        
-        winner = GetEventInt(event, "winner");
-        reason = GetEventInt(event, "reason");
-        GetEventString(event, "message", message, sizeof(message))
-        
-        decl String:roundInfo[64];
-        Format(roundInfo
-                , sizeof(roundInfo)
-                , "r,%d,%d,%s" // r,winner,reason,message
-                , winner, reason, message
-        );
+        decl String:weapon[64]
+        new victimId = GetEventInt(event, "userid")
+        new attackerId = GetEventInt(event, "attacker")
+        new bool:headshot = GetEventBool(event, "headshot")
+        GetEventString(event, "weapon", weapon, sizeof(weapon))
 
-        SocketSend(gSocket, roundInfo);
+        decl String:aname[64], String:vname[64];
+        new victim = GetClientOfUserId(victimId)
+        new attacker = GetClientOfUserId(attackerId)
+        GetClientName(attacker, aname, sizeof(aname))
+        GetClientName(victim, vname, sizeof(vname))
+        PrintToServer(
+            "%s was killed by %s with a %s (headshot: %d)"
+            , vname, aname, weapon, headshot
+            )
+    }
+   
+    else if (StrEqual(name, "round_end")) // Prints Round End Status to server, Test
+    {
+        decl String:message[64]
+        new winner = GetEventInt(event, "winner");
+        new reason = GetEventInt(event, "reason");
+        GetEventString(event, "message", message, sizeof(message))
+        PrintToServer(
+            "winner: %i, reason: %i, message: %s"
+            , winner, reason, message
+            )
+        
+    }
+
+    else if (StrEqual(name, "hegrenade_detonate")) //Not Working as intended
+    {
+        decl Float:pos[3], String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client = GetClientOfUserId(clientId)
+        GetClientName(client, cname, sizeof(cname))
+        GetEntPropVector(event, Prop_Send, "m_vecOrigin", pos);
+
+        PrintToServer(
+            "%s's HE Grenade exploded @ X:%f, Y:%f, Z:%f"
+            , cname, pos[0], pos[1], pos[2]
+        )
+    }
+
+    else if (StrEqual(name, "game_newmap")) //Not Working at all
+    {
+        decl String:mapname[64]
+        GetEventString(event, "mapname", mapname, sizeof(mapname));
+        PrintToServer(
+            "The current map is: %s"
+            , mapname
+        )
+    }
+    
+    else if (StrEqual(name, "player_blind"))
+    {
+        decl String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client = GetClientOfUserId(clientId)
+        GetClientName(client, cname, sizeof(cname))
+        PrintToServer(
+            "%s was blinded by a flashbang"
+            , cname
+            )
+    }
 }
+
+
+public MapName(Handle:event, const String:name[], bool:dontBroadcast)
+{
+    decl String:mapname[64]
+    GetEventString(event, "mapname", mapname, sizeof(mapname));
+    PrintToServer("The Current Map is: %s",mapname);
+
+//    if (gReady)
+//    {
+//        decl String:mapname[64];
+//        GetEventString(event, "mapname", mapname, sizeof(mapname))
+//        
+//        decl String:mapInfo[64];
+//        Format(mapInfo
+//            , sizeof(mapInfo)
+//            , "m,%s" // m, mapname
+//            , mapname
+//        );
+//
+//        SocketSend(gSocket, mapInfo);
+//}
 }
+
 
 
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
