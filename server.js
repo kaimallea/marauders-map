@@ -1,21 +1,38 @@
 #!/usr/bin/env node
 
 var HTTP_PORT = 1337,
-    UDP_PORT = 1338;
+    UDP_PORT = 1338,
+    TCP_PORT = 1339;
 
+//requires
 var http = require('http'),
+    net = require('net'),
     dgram = require('dgram'),
     express = require('express'),
     io = require('socket.io'),
     util = require('util'),
     cradle = require('cradle'),
-    clc = require('cli-color');
+    clc = require('cli-color'),
+    irc = require('irc');
 
 var webapp = express();
 var httpServer = http.createServer(webapp);
 var webSocketServer = io.listen(httpServer);
 var udpServer = dgram.createSocket('udp4');
 
+var tcpServer = net.createServer(function (c) { //tcp server events handled
+    c.setKeepAlive(true, 5);
+    c.setEncoding('utf-8');
+    c.on('connect', function () {
+        console.log(green('Client connected'));
+    });
+    c.on('end', function () {
+        console.log(error('Client disconnected'));
+    });
+    c.on('data', function (data) {
+        console.log(warn(data));
+    }); 
+});
 
 // Keep track of game state, so clients don't have to
 var GAME_STATE = {
@@ -86,16 +103,17 @@ db.exists(function(err, exists) {
 //    }
 //  });
 
+// Handle incoming TCP packets
 
-// le incoming UDP packets
+
+// Handle incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
     var data = msg.toString().split(',');
-
     switch(data[0]) {
         // Positions
         case 'p':
-            //console.log(notice(data));
-            //webSocketServer.sockets.emit('position',
+            console.log(notice(data));
+            //webSocketServer.cs.emit('position',
             // id,team,bomb,x,y,z,yaw
             //util.format('%d,%d,%d,%f,%f,%f,%f', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
             //);
@@ -107,6 +125,10 @@ udpServer.on('message', function (msg, rinfo) {
             console.log(error(data));
             break;
 
+        case 'm':
+            
+            console.log(green(data));
+            break;
         // Unknown
         default:
     }
@@ -114,6 +136,10 @@ udpServer.on('message', function (msg, rinfo) {
 
 udpServer.on('listening', function () {
     console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
+});
+
+tcpServer.listen(TCP_PORT, function () {
+    console.log(notice('TCP') + ' server listening on' + notice(' %d'), TCP_PORT);
 });
 
 httpServer.listen(HTTP_PORT);

@@ -5,7 +5,8 @@
 
 #define PLUGIN_VERSION  "0.0.9"
 #define HOSTNAME        "127.0.0.1"
-#define PORT            1338
+#define UDP_PORT        1338
+#define TCP_PORT        1339
 
 public Plugin:myinfo = 
 {
@@ -16,8 +17,8 @@ public Plugin:myinfo =
     url = "http://www.marauders-map.com"
 }
 
-
-new Handle:gSocket = INVALID_HANDLE;
+new Handle:tSocket = INVALID_HANDLE;
+new Handle:uSocket = INVALID_HANDLE;
 new bool:gReady = false;
 
 
@@ -26,13 +27,15 @@ new bool:gReady = false;
 
 public OnPluginStart()
 {
-    gSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
-    SocketConnect(gSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, PORT);
+    tSocket = SocketCreate(SOCKET_TCP, OnSocketError);
+    SocketConnect(tSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, TCP_PORT);
+    uSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
+    SocketConnect(uSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, UDP_PORT);
 //    HookEvent("hegrenade_detonate", EventHandler); //needs work
-//    HookEvent("round_end", EventHandler); //works
+    HookEvent("round_end", EventHandler); //works
 //    HookEvent("game_newmap", EventHandler); //not working
     HookEvent("player_death", EventHandler);
-//    HookEvent("player_blind", EventHandler); //works
+    HookEvent("player_blind", EventHandler); //works
 //    HookEvent("weapon_fire", EventHandler); //needs work
     HookEvent("player_hurt", EventHandler);
 }
@@ -52,22 +55,37 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         new attacker = GetClientOfUserId(attackerId)
         GetClientName(attacker, aname, sizeof(aname))
         GetClientName(victim, vname, sizeof(vname))
+        
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "%s was killed by %s with a %s (hs: %d)"
+                , vname, aname, weapon, headshot
+                )
+        SocketSend(tSocket, info)
         PrintToServer(
             "%s was killed by %s with a %s (hs: %d)"
             , vname, aname, weapon, headshot
             )
     }
-   
     else if (StrEqual(name, "round_end")) // Prints Round End Status to server, Test
     {
         decl String:message[64]
         new winner = GetEventInt(event, "winner");
         new reason = GetEventInt(event, "reason");
         GetEventString(event, "message", message, sizeof(message))
+        
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "Winner: %i Reason %i: Message: %s"
+                , winner, reason, message
+                )
+        SocketSend(tSocket, info)
         PrintToServer(
             "winner: %i, reason: %i, message: %s"
             , winner, reason, message
-            )
+                )
         
     }
     else if (StrEqual(name, "hegrenade_detonate")) //Not Working as intended
@@ -98,6 +116,14 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         new clientId = GetEventInt(event, "userid")
         new client = GetClientOfUserId(clientId)
         GetClientName(client, cname, sizeof(cname))
+        
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "%s was blinded by a flashbang"
+                , cname
+                )
+        SocketSend(tSocket, info)
         PrintToServer(
             "%s was blinded by a flashbang"
             , cname
@@ -162,7 +188,7 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
                 , client, team, bomb, pos[0], pos[1], pos[2], ang[1]
         );
 
-        SocketSend(gSocket, playerInfo);
+        SocketSend(uSocket, playerInfo);
 }
 }
 
