@@ -6,7 +6,7 @@
 
     var MM = global.MM = global.MM || {};
 
-    var SVGDOC, DEFS, MARKER, PLAYERS;
+    var SVGDOC, DEFS, T_MARKER, CT_MARKER, PLAYERS;
 
     //var positionWorker = new Worker('/js/SocketIOClient.js');
 
@@ -20,14 +20,16 @@
         // Get references to elements in SVG doc
         SVGDOC  = document.getElementById('map')
                     .getSVGDocument() // #Document
-                    .getElementsByTagName('svg')[0], // <svg>...</svg>
+                    .getElementsByTagName('svg')[0]; // <svg>...</svg>
         DEFS    = SVGDOC.getElementById('defs'); // <defs>...</defs>
-        MARKER  = SVGDOC.getElementById('marker'); // <g id="marker">...</g>
+        T_MARKER  = SVGDOC.getElementById('t-marker'); // <g id="t-marker">...</g>
+        CT_MARKER = SVGDOC.getElementById('ct-marker'); // <g id="ct-marker">...</g>
         PLAYERS = SVGDOC.getElementById('players'); // <g id="players">...</g>
 
         // Start worker
         //positionWorker.addEventListener('message', updatePosition, false);
 
+        // TODO: Remove the following test lines
         var p = MM.createPlayer({id: 1, team: 'ct'});
         p.setName('Obama');
         p.moveTo(-421.77, 6459.80);
@@ -71,7 +73,7 @@
         options.id = 'id' + options.id;
 
         var group   = createEl('g', {id: options.id});
-        this.markerEl = createEl('use', {'xlink:href': '#marker', className: options.team});
+        this.markerEl = createEl('use', {'xlink:href': '#' + options.team + '-marker', className: options.team});
         this.nameEl    = createEl('text', {x: 0, y: 135, className: 'name'});
         this.nameEl.textContent = options.name;
 
@@ -93,7 +95,7 @@
 
         moveTo: function (x, y) { // Translate player group to x,y position
             this.el.setAttribute('transform', 'translate(' + x + ',' + y + ')');
-        }
+        },
 
         setName: function (name) { // Set name of player
             this.nameEl.textContent = name;
