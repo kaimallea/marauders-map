@@ -20,7 +20,7 @@ function onPositionUpdate (data) {
     } else if (team === 3) {
         team = 'ct';
     } else {
-        return
+        return;
     }
     
     data[1] = team;
