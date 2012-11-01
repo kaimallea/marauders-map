@@ -1,33 +1,15 @@
+<?xml-stylesheet href="/maps/css/de_dust2_se.css" type="text/css"?>
 <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     width="100%" height="100%" viewBox="0 0 4500 4500" preserveAspectRatio="xMinYMin">
-
-    <title>Marauder's Map</title>
-    <desc>de_dust_2_se</desc>
-
-    <defs>
-        <!-- General marker -->
-        <g id="marker">
-            <circle cx="0" cy="0" r="32" />
+    <defs id="defs">
+        <g id="t-marker">
+            <image xlink:href="/maps/t_marker.png" x="-45" y="-56.5" width="90" height="113" preserveAspectRatio="none"/>
         </g>
-
-        <!-- T marker-->
-        <g id="t">
-            <use xlink:href="#marker" style="stroke: black; fill: rgba(180, 62, 62, 1);" />
-            <text x="0" y="135" text-anchor="middle" style="fill:white;stroke:black;font-family:Verdana;font-size: 70px">T Player</text>
+        <g id="ct-marker">
+            <image xlink:href="/maps/ct_marker.png" x="-45" y="-56.5" width="90" height="113" preserveAspectRatio="none"/>
         </g>
-
-        <!-- CT marker -->
-        <g id="ct">
-            <use xlink:href="#marker" style="stroke: black; fill: rgba(90, 90, 213, 1);" />
-            <text x="0" y="135" text-anchor="middle" style="fill:white;stroke:black;font-family:Verdana;font-size: 70px">CT Player</text>
-        </g>      
     </defs>
-
-    <!-- Map SVG serves as background image -->
-    <image xlink:href="/svg/de_dust2_se_radar.svg" x="0" y="0" width="4500" height="4500" preserveAspectRatio="none" />
-
-    <!-- Players should be draw with translations -->
-    <!-- <use id="kai" xlink:href="#t" x="-2440" y="3380" transform="translate(2440,-3380)" /> -->
-    <!-- <use xlink:href="#ct" x="-421.77" y="6759.80" transform="translate(2440,-3380)" /> -->
+    <image xlink:href="/maps/de_dust2_se_radar.png" x="0" y="0" width="4500" height="4500" preserveAspectRatio="none"/>
+    <g id="players" transform="translate(2440,-3380)"></g>
 </svg>

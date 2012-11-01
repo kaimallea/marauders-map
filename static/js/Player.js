@@ -37,13 +37,6 @@ function Player (obj) {
 	
 	this.name = '';				// In-game name
 	
-	this.nameEl = PAPER.text(0, 0, 'Player')
-                        .attr({
-                            'font-size':'60em',
-                            'fill': 'black',
-                            'stroke': 'white'
-                        });
-
 	this.position = { 			// Actual in-game position
 		x: obj.pos.x, 	
 		y: obj.pos.y,
@@ -53,14 +46,11 @@ function Player (obj) {
 	switch ( parseInt(obj.team, 10) ) {
 		case 2:
             this.flags |= TERRORIST;
-            this.marker = T_MARKER.clone().show();
             break;
 		case 3:
             this.flags |= COUNTER_TERRORIST;
-            this.marker = CT_MARKER.clone().show();
             break;
 		default:
-            this.marker = CT_MARKER.clone().show();
 	}
 
 
@@ -169,7 +159,6 @@ Player.prototype.draw = function () {
  */
 Player.prototype.setName = function (name) {
     this.name = name;
-    this.nameEl.attr({text:name});
 };
 
 

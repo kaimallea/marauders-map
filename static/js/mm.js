@@ -4,38 +4,73 @@
 (function (global) {
     'use strict';
 
+    // Global object in browser
     var MM = global.MM = global.MM || {};
 
-    var SVGDOC, DEFS, T_MARKER, CT_MARKER, PLAYERS;
-
-    //var positionWorker = new Worker('/js/SocketIOClient.js');
+    // Globals inside this anonymous func
+    var SVGDOC, DEFS, T_MARKER, CT_MARKER, PLAYERS = [];
 
 
     function updatePosition(message) {
-        //console.log(message.data);
+        var data    = message.data.split(','),
+            id      = data[0],
+            team    = data[1],
+            bomb    = data[2],
+            x       = data[3],
+            y       = data[4],
+            z       = data[5],
+            yaw     = data[6];
+
+        if (!PLAYERS[id]) {
+            PLAYERS[id] = MM.createPlayer({
+                id: id,
+                team: team
+            });
+            return;
+        }
+
+        requestAnimationFrame(function() {
+            PLAYERS[id].moveTo(x, y).rotate(yaw);
+        });
     }
 
 
     function init() {
         // Get references to elements in SVG doc
-        SVGDOC  = document.getElementById('map')
-                    .getSVGDocument() // #Document
-                    .getElementsByTagName('svg')[0]; // <svg>...</svg>
-        DEFS    = SVGDOC.getElementById('defs'); // <defs>...</defs>
-        T_MARKER  = SVGDOC.getElementById('t-marker'); // <g id="t-marker">...</g>
-        CT_MARKER = SVGDOC.getElementById('ct-marker'); // <g id="ct-marker">...</g>
-        PLAYERS = SVGDOC.getElementById('players'); // <g id="players">...</g>
+        SVGDOC      = document.getElementById('map')
+                        .getSVGDocument() // #Document
+                        .getElementsByTagName('svg')[0]; // <svg>...</svg>
 
-        // Start worker
-        //positionWorker.addEventListener('message', updatePosition, false);
+        DEFS        = SVGDOC.getElementById('defs'); // <defs>...</defs>
+        T_MARKER    = SVGDOC.getElementById('t-marker'); // <g id="t-marker">...</g>
+        CT_MARKER   = SVGDOC.getElementById('ct-marker'); // <g id="ct-marker">...</g>
+        PLAYERS     = SVGDOC.getElementById('players'); // <g id="players">...</g>
 
-        // TODO: Remove the following test lines
+        // Create and start worker
+        var positionWorker = new Worker('/js/SocketIOClient.js')
+                                .addEventListener('message', updatePosition, false);
+
+
+        window.requestAnimationFrame = (function() {
+            return window.requestAnimationFrame ||
+                   window.webkitRequestAnimationFrame ||
+                   window.mozRequestAnimationFrame ||
+                   window.oRequestAnimationFrame ||
+                   window.msRequestAnimationFrame ||
+                   function(callback) {
+                       window.setTimeout(callback, 1000/60);
+                   };
+        })();
+
+        /*
         var p = MM.createPlayer({id: 1, team: 'ct'});
         p.setName('Obama');
         p.moveTo(-421.77, 6459.80);
         p.rotate(90);
+        */
 
         console.log('MM initialized');
+
     }
 
 
@@ -69,7 +104,7 @@
      *
      */
     function MMPlayer(options) {
-        options.name = options.name || 'Unknown';
+        options.name = options.name || options.team.toUpperCase();
         options.id = 'id' + options.id;
 
         var group   = createEl('g', {id: options.id});
@@ -91,14 +126,17 @@
     MMPlayer.prototype = {
         rotate: function (D) { // Rotate the marker by D degrees
             this.markerEl.setAttribute('transform', 'rotate(' + D + ')');
+            return this;
         },
 
         moveTo: function (x, y) { // Translate player group to x,y position
             this.el.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+            return this;
         },
 
         setName: function (name) { // Set name of player
             this.nameEl.textContent = name;
+            return this;
         }
     };
 

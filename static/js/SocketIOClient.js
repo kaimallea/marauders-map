@@ -3,22 +3,44 @@
  */
 importScripts('/socket.io/socket.io.js');
 
-addEventListener('message', function (e) {
-    var data = e.data;
-    switch (data.cmd) {
-        case 'start':
-            initSocket();
-            break;
-        default:
-            break;
-    }
-});
-
 
 // Callback when positions are updated
 function onPositionUpdate (data) {
-    postMessage(data);
+    data = data.split(',');
+
+    var team = data[1],
+        y    = data[4],
+        yaw  = data[6],
+        offsetY = 3380;
+
+    // normalize team
+    team = parseInt(team, 10);
+    if (team === 2) {
+        team = 't';
+    } else if (team === 3) {
+        team = 'ct';
+    } else {
+        return
+    }
+    
+    data[1] = team;
+
+    // normalize y
+    if (y < 0) {
+        y = Math.abs(y) + (offsetY * 2);
+    } else {
+        y = offsetY + (offsetY - y);
+    }
+    data[4] = y;
+
+    // normalize yaw
+    yaw = -yaw + 90;
+    data[6] = yaw;
+
+    postMessage(data.join(','));
+
     return;
+
     var len;
     if ( !(len = data.pos.length) ) { return; }
 
@@ -38,7 +60,7 @@ function onPositionUpdate (data) {
 }
 
 // Callback when names are broadcasted
-function onNamesUpdate (data) {
+function onNameUpdate (data) {
     var len;
     if ( !(len = data.names.length) ) { return; }
 
