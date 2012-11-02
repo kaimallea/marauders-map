@@ -4,7 +4,7 @@ var HTTP_PORT = 1337,
     UDP_PORT = 1338,
     TCP_PORT = 1339;
 
-//requires
+//requirers
 var http = require('http'),
     net = require('net'),
     dgram = require('dgram'),
@@ -23,51 +23,126 @@ var udpServer = dgram.createSocket('udp4');
 var tcpServer = net.createServer(function (c) { //tcp server events handled
     c.setKeepAlive(true, 5);
     c.setEncoding('utf-8');
-    c.on('connect', function () {
-        console.log(green('Client connected'));
+        c.on('connect', function () {
+            console.log(green('Client connected'));
+        });
+        c.on('end', function () {
+            console.log(error('Client disconnected'));
+        });
+        c.on('data', function (data) {
+            //data = type,timestamp,var1,var2,var3,var4,var5,var6,var7,etc
+            console.log(warn(data));
+            data  = data.toString().split(',');
+            type  = data[0];
+            time  = data[1];
+            plant = data[2];
+            switch(type) {
+                case 're':           //round end
+                    winner   = data[3]
+                    reason   = data[4]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, winner: winner, reason: reason }
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    db.save(payload, function (err, res) {
+                        if (err) {
+                            console.log(error('DB Error: ', err));
+                        } 
+                        else {
+                            console.log(notice('Saved as: ', res));
+                        };
+                    });
+                break;
+                case 'pd':          //player death
+                    attacker = data[3]
+                    victim   = data[4]
+                    weapon   = data[5]
+                    headshot = data[6]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, victim: victim, attacker: attacker, weapon: weapon, headshot: headshot}
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    db.save(payload, function (err, res) {
+                        if (err) {
+                            console.log(error('DB Error: ', err));
+                        }
+                        else {
+                            console.log(notice('Saved as: ', res));
+                        };
+                    })
+                break;
+                case 'ps':          //plant started
+                    name     = data[3]
+                break;
+                case 'bp':          //bomb planted
+                    name     = data[3]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, name: name } 
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    db.save(payload, function (err, res) {
+                        if (err) {
+                            console.log(error('DB Error: ', err));
+                        }
+                        else {
+                            console.log(notice('Saved as: ', res));
+                        };
+                    })
+                break;
+                case 'ds':          //defuse started
+                    name     = data[3]
+                case 'db':          //bomb defused
+                    name     = data[3]
+                break;
+                default: 
+                    console.log(green('FART'));
+           // data = JSON.parse(data);
+           // db.save(data, function (err, res) {
+           //     if (err) {
+           //       console.log(error('Error: ', err));
+           //     } else {
+           //         console.log(notice('Saved as', res));
+           //     };
+            } 
+        }); 
     });
-    c.on('end', function () {
-        console.log(error('Client disconnected'));
+
+
+    // Keep track of game state, so clients don't have to
+    var GAME_STATE = {
+        t: {
+            teamName: '',
+            wins: 0
+        },
+
+        ct: {
+            teamName: '',
+            wins: 0
+        },
+
+        mapName: '',
+        currentRound: 0,
+        maxRounds: 0,
+        warmup: true,
+        halftime: false
+    };
+
+
+    // Static files (js, css, images, etc.) will be
+    // served out of "static" folder
+    webapp.use(express.static(__dirname + '/static'));
+    // HTTP requests to root should return index.html
+    webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
     });
-    c.on('data', function (data) {
-        console.log(warn(data));
-    }); 
-});
 
-// Keep track of game state, so clients don't have to
-var GAME_STATE = {
-    t: {
-        teamName: '',
-        wins: 0
-    },
-
-    ct: {
-        teamName: '',
-        wins: 0
-    },
-
-    mapName: '',
-    currentRound: 0,
-    maxRounds: 0,
-    warmup: true,
-    halftime: false
-};
-
-
-// Static files (js, css, images, etc.) will be
-// served out of "static" folder
-webapp.use(express.static(__dirname + '/static'));
-
-
-// HTTP requests to root should return index.html
-webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
-});
-
-// Cli-color styling
-var error = clc.red;
-var warn = clc.yellow;
-var notice = clc.blue;
-var green = clc.green;
+    // Cli-color styling
+    var error = clc.red;
+    var warn = clc.yellow;
+    var notice = clc.blue;
+    var green = clc.green;
 
 // Some couch/cradle specific vars
 cradle.setup({
@@ -91,10 +166,7 @@ db.exists(function(err, exists) {
     }
 });
 
-// Database save method
-//
-// 
-//
+//// Database save method
 //db.save(json, function (err, res) {
 //    if (err) {
 //      console.log(error('error', err));
@@ -103,16 +175,13 @@ db.exists(function(err, exists) {
 //    }
 //  });
 
-// Handle incoming TCP packets
-
-
 // Handle incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
     var data = msg.toString().split(',');
     switch(data[0]) {
         // Positions
         case 'p':
-            console.log(notice(data));
+            //console.log(notice(data));
             //webSocketServer.cs.emit('position',
             // id,team,bomb,x,y,z,yaw
             //util.format('%d,%d,%d,%f,%f,%f,%f', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
@@ -134,6 +203,7 @@ udpServer.on('message', function (msg, rinfo) {
     }
 });
 
+//Set up listens
 udpServer.on('listening', function () {
     console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
 });
