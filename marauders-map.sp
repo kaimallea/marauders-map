@@ -39,61 +39,78 @@ public OnPluginStart()
     uSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
     SocketConnect(uSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, UDP_PORT);
     //HookEvents go to EventHandler
-    //HookEvent("hegrenade_detonate", EventHandler); //needs work
-    HookEvent("round_end", EventHandler); //works
-    HookEvent("player_death", EventHandler);
-    HookEvent("player_blind", EventHandler); //works
-    //    HookEvent("weapon_fire", EventHandler); //needs work
-    HookEvent("player_hurt", EventHandler);
-    HookEvent("bomb_planted", EventHandler);
-    HookEvent("round_start", EventHandler);
-    HookEvent("round_freeze_end", EventHandler);
+    HookEvent("hegrenade_detonate", EventHandler); //needs work
+    //HookEvent("weapon_fire", EventHandler); //needs work
+    HookEvent("round_end", EventHandler);                   //rdy 
+    HookEvent("player_death", EventHandler);                //rdy
+    HookEvent("player_blind", EventHandler);                //rdy
+    HookEvent("player_hurt", EventHandler);                 //rdy
+    HookEvent("round_start", EventHandler);                 //rdy
+    HookEvent("round_freeze_end", EventHandler);            //rdy
+    HookEvent("bomb_defused", EventHandler);                //rdy
+    HookEvent("bomb_beginplant", EventHandler);
+    HookEvent("bomb_planted", EventHandler);                //rdy
+    HookEvent("flashbang_detonate", EventHandler);          //rdy
+    HookEvent("smokegrenade_detonate", EventHandler);       //rdy
+    HookEvent("molotov_detonate", EventHandler);
+    HookEvent("decoy_detonate", EventHandler);
+
 }
 
 public OnMapStart() //MUST BE PAIRED WITH OnMapEnd()
 {
-    HookEvent("game_newmap", EventHandler);
+    decl String:mapname[64];
+    GetCurrentMap(mapname, sizeof(mapname));
+        decl String:info[64];
+    Format(info
+        , sizeof(info)
+        , "cm,%s"
+        , mapname
+        )
+    SocketSend(tSocket, info)
 }
-public OnMapEnd() //MUST BE PAIREDWITH OnMapStart()
+public OnMapEnd()   //MUST BE PAIREDWITH OnMapStart()
 {
-    PrintToServer("Camelot")
+    bStart         = false;
+    rStart         = false;
 }
 
 public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
 {
-    if (StrEqual(name, "player_death")) // Prints player_death info to server, Test
+    if (StrEqual(name, "player_death"))            // Prints player_death info to server 
     {
-        decl String:weapon[64]
+        decl String:weapon[64];
         new victimId      = GetEventInt(event, "userid")
         new attackerId    = GetEventInt(event, "attacker")
         new bool:headshot = GetEventBool(event, "headshot")
         GetEventString(event, "weapon", weapon, sizeof(weapon))
 
         decl String:aname[64], String:vname[64];
-        new victim = GetClientOfUserId(victimId)
-        new attacker = GetClientOfUserId(attackerId)
+        new victim    = GetClientOfUserId(victimId)
+        new attacker  = GetClientOfUserId(attackerId)
+        new ateam     = GetClientTeam(attacker)
+        new vteam     = GetClientTeam(victim)
         GetClientName(attacker, aname, sizeof(aname))
         GetClientName(victim, vname, sizeof(vname))
-        
         decl String:info[128]
         Format(info
                 , sizeof(info)
-            , "pd,%i,%i,%s,%s,%s,%d"
-            , gRoundTime, bStart, aname, vname, weapon, headshot        
-                )
+            , "pd,%i,%i,%s,%s,%i,%i,%s,%d"
+            , gRoundTime, bStart, aname, vname, ateam, vteam, weapon, headshot        
+            )
         SocketSend(tSocket, info)
     }
-    else if (StrEqual(name, "round_start")) //Round Start Procedures 
+    else if (StrEqual(name, "round_start"))        //Round Start Procedures 
     {
     }
     
-    else if (StrEqual(name, "round_freeze_end")) //Procedures after freezetime ends 
+    else if (StrEqual(name, "round_freeze_end"))   //Procedures after freezetime ends 
     {
         rStart = true;
         CreateTimer(1.0, RoundTime, _, TIMER_REPEAT);
     }
     
-    else if (StrEqual(name, "round_end")) // Prints Round End Status to server, Test
+    else if (StrEqual(name, "round_end"))          // Prints Round End Status to server, Test
     {
         new winner    = GetEventInt(event, "winner");
         new reason    = GetEventInt(event, "reason");
@@ -111,24 +128,58 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
     {
         decl Float:pos[3], String:cname[64];
         new clientId = GetEventInt(event, "userid")
-        new client = GetClientOfUserId(clientId)
+        new client   = GetClientOfUserId(clientId)
+        new team     = GetClientTeam(client)
+        pos[0]       = GetEventFloat(event, "x")
+        pos[1]       = GetEventFloat(event, "y")
+        pos[2]       = GetEventFloat(event, "z")
         GetClientName(client, cname, sizeof(cname))
-        GetEntPropVector(clientId, Prop_Send, "m_vecOrigin", pos);
 
-        PrintToServer(
-            "%s's HE Grenade exploded @ X:%f, Y:%f, Z:%f"
-            , cname, pos[0], pos[1], pos[2]
-        )
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "hed, %i, %d, %s, %i, %f, %f, %f"
+                , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
+                )
+        SocketSend(tSocket, info)
     }
-    else if (StrEqual(name, "game_newmap")) //Not Working at all
+    else if (StrEqual(name, "flashbang_detonate")) //Sends location and owner of fb.
     {
-        decl String:mapname[64]
-        GetEventString(event, "mapname", mapname, sizeof(mapname));
-        PrintToServer("--------------------------------------------------------------")
-        PrintToServer(
-            "The current map is: %s"
-            , mapname
-        )
+        decl Float:pos[3], String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client   = GetClientOfUserId(clientId)
+        new team     = GetClientTeam(client)
+        pos[0]       = GetEventFloat(event, "x")
+        pos[1]       = GetEventFloat(event, "y")
+        pos[2]       = GetEventFloat(event, "z")
+        GetClientName(client, cname, sizeof(cname))
+
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "fbd, %i, %d, %s, %i, %f, %f, %f"
+                , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
+                )
+        SocketSend(tSocket, info)
+    }
+    else if (StrEqual(name, "smokegrenade_detonate")) //Sends location and owner of fb.
+    {
+        decl Float:pos[3], String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client   = GetClientOfUserId(clientId)
+        new team     = GetClientTeam(client)
+        pos[0]       = GetEventFloat(event, "x")
+        pos[1]       = GetEventFloat(event, "y")
+        pos[2]       = GetEventFloat(event, "z")
+        GetClientName(client, cname, sizeof(cname))
+
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "sgd, %i, %d, %s, %i, %f, %f, %f"
+                , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
+                )
+        SocketSend(tSocket, info)
     }
     else if (StrEqual(name, "player_blind"))
     {
@@ -183,16 +234,17 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         GetClientName(attacker, aname, sizeof(aname))
         GetClientName(victim, vname, sizeof(vname))
         GetClientName(assister, assname, sizeof(assname))
-        PrintToServer(
-            " %s was shot in the %s by %s for %i ammount of dmg, there of %i armor. (hs: %d)"
-            , vname, hitgroup, aname, dmg_health, dmg_armor, headshot 
-        )
+        //PrintToServer(
+        //    " %s was shot in the %s by %s for %i ammount of dmg, there of %i armor. (hs: %d)"
+        //    , vname, hitgroup, aname, dmg_health, dmg_armor, headshot 
+        //)
     }
     else if (StrEqual(name, "bomb_planted"))
     {
         decl String:cname[64];
         new clientId = GetEventInt(event, "userid")
-        new client = GetClientOfUserId(clientId)
+        new client   = GetClientOfUserId(clientId)
+        new bombSite = GetEventInt(event, "site")
         GetClientName(client, cname, sizeof(cname))
         
         decl String:info[64]
@@ -205,12 +257,30 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         rStart = false;
         bStart = true;
         CreateTimer(1.0, BombTime, _, TIMER_REPEAT);
+        PrintToServer("-------%i-------",bombSite)
+    }
+    else if (StrEqual(name, "bomb_defused"))
+    {
+        decl String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client   = GetClientOfUserId(clientId)
+        new bombSite = GetEventInt(event, "site")
+        GetClientName(client, cname, sizeof(cname))
+        
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "bd,%i,%d,%s,%i"
+                ,  gRoundTime, bStart, cname, bombSite
+                )
+        SocketSend(tSocket, info)
+        PrintToServer("---%i----",bombSite)
     }
 }
 //UDP SEND
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
 {
-    if (gReady)
+        if (gReady)
     {
         decl team, bomb, Float:pos[3];
 

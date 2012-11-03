@@ -4,7 +4,7 @@ var HTTP_PORT = 1337,
     UDP_PORT = 1338,
     TCP_PORT = 1339;
 
-//requirers
+//Requires
 var http = require('http'),
     net = require('net'),
     dgram = require('dgram'),
@@ -19,96 +19,6 @@ var webapp = express();
 var httpServer = http.createServer(webapp);
 var webSocketServer = io.listen(httpServer);
 var udpServer = dgram.createSocket('udp4');
-
-var tcpServer = net.createServer(function (c) { //tcp server events handled
-    c.setKeepAlive(true, 5);
-    c.setEncoding('utf-8');
-        c.on('connect', function () {
-            console.log(green('Client connected'));
-        });
-        c.on('end', function () {
-            console.log(error('Client disconnected'));
-        });
-        c.on('data', function (data) {
-            //data = type,timestamp,var1,var2,var3,var4,var5,var6,var7,etc
-            console.log(warn(data));
-            data  = data.toString().split(',');
-            type  = data[0];
-            time  = data[1];
-            plant = data[2];
-            switch(type) {
-                case 're':           //round end
-                    winner   = data[3]
-                    reason   = data[4]
-                    payload  = JSON.stringify(
-                    { type: type, time: time, plant: plant, winner: winner, reason: reason }
-                    );
-                    console.log(warn(payload));
-                    payload  = JSON.parse(payload);
-                    db.save(payload, function (err, res) {
-                        if (err) {
-                            console.log(error('DB Error: ', err));
-                        } 
-                        else {
-                            console.log(notice('Saved as: ', res));
-                        };
-                    });
-                break;
-                case 'pd':          //player death
-                    attacker = data[3]
-                    victim   = data[4]
-                    weapon   = data[5]
-                    headshot = data[6]
-                    payload  = JSON.stringify(
-                    { type: type, time: time, plant: plant, victim: victim, attacker: attacker, weapon: weapon, headshot: headshot}
-                    );
-                    console.log(warn(payload));
-                    payload  = JSON.parse(payload);
-                    db.save(payload, function (err, res) {
-                        if (err) {
-                            console.log(error('DB Error: ', err));
-                        }
-                        else {
-                            console.log(notice('Saved as: ', res));
-                        };
-                    })
-                break;
-                case 'ps':          //plant started
-                    name     = data[3]
-                break;
-                case 'bp':          //bomb planted
-                    name     = data[3]
-                    payload  = JSON.stringify(
-                    { type: type, time: time, plant: plant, name: name } 
-                    );
-                    console.log(warn(payload));
-                    payload  = JSON.parse(payload);
-                    db.save(payload, function (err, res) {
-                        if (err) {
-                            console.log(error('DB Error: ', err));
-                        }
-                        else {
-                            console.log(notice('Saved as: ', res));
-                        };
-                    })
-                break;
-                case 'ds':          //defuse started
-                    name     = data[3]
-                case 'db':          //bomb defused
-                    name     = data[3]
-                break;
-                default: 
-                    console.log(green('FART'));
-           // data = JSON.parse(data);
-           // db.save(data, function (err, res) {
-           //     if (err) {
-           //       console.log(error('Error: ', err));
-           //     } else {
-           //         console.log(notice('Saved as', res));
-           //     };
-            } 
-        }); 
-    });
 
 
     // Keep track of game state, so clients don't have to
@@ -131,25 +41,25 @@ var tcpServer = net.createServer(function (c) { //tcp server events handled
     };
 
 
-    // Static files (js, css, images, etc.) will be
-    // served out of "static" folder
-    webapp.use(express.static(__dirname + '/static'));
-    // HTTP requests to root should return index.html
-    webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
-    });
+// Static files (js, css, images, etc.) will be
+// served out of "static" folder
+webapp.use(express.static(__dirname + '/static'));
+// HTTP requests to root should return index.html
+webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
+});
 
-    // Cli-color styling
-    var error = clc.red;
-    var warn = clc.yellow;
-    var notice = clc.blue;
-    var green = clc.green;
+// Cli-color styling
+var error = clc.red;
+var warn = clc.yellow;
+var notice = clc.blue;
+var green = clc.green;
 
-// Some couch/cradle specific vars
+// Cradle connection info.
 cradle.setup({
     host: '192.168.234.92',
     cache: true,
     raw: false,
-    });
+});
 
 var c = new(cradle.Connection);
 var db = c.database('google-strike');
@@ -161,19 +71,135 @@ db.exists(function(err, exists) {
     } else if (exists) {
       console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
     } else {
-      console.log(warning('db does not exist, creating...'));
+      console.log(warn('db does not exist, creating...'));
       db.create();
     }
 });
 
-//// Database save method
-//db.save(json, function (err, res) {
-//    if (err) {
-//      console.log(error('error', err));
-//    } else {
-//        console.log(notice('Saved as', res));
-//    }
-//  });
+var tcpServer = net.createServer(function (c) { //tcp server events handled
+    c.setKeepAlive(true, 5);
+    c.setEncoding('utf-8');
+        c.on('connect', function () { //Fires when CS:GO Server connects
+            console.log(green('Client connected'));
+        });
+        c.on('end', function () {     //Fires when CS:GO Server disconnects
+            console.log(error('Client disconnected'));
+        });
+        c.on('data', function (data) {     //On Data, save data to db
+            //data = type,timestamp,var1,var2,var3,var4,var5,var6,var7,etc
+            console.log(warn(data));
+            data   = data.toString().split(',');
+            type   = data[0];
+            time   = data[1];
+            plant  = data[2];
+            
+            switch(type) {      //Different cases, different db writes
+                case 're':          //round end
+                    winner   = data[3]
+                    reason   = data[4]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, winner: winner, reason: reason }
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+                    if(winner == 2) {
+                        GAME_STATE.t.wins++
+                        console.log(error(GAME_STATE.t.wins))
+                    } else if(winner ==3) {
+                        GAME_STATE.ct.wins++
+                        console.log(notice(GAME_STATE.ct.wins))
+                    }
+                break;
+                case 'pd':          //player death
+                    attacker = data[3]
+                    victim   = data[4]
+                    ateam    = data[5]
+                    vteam    = data[6]
+                    weapon   = data[7]
+                    headshot = data[8]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant
+                    , victim: victim, attacker: attacker
+                    , vteam: vteam, ateam: ateam, weapon: weapon, headshot: headshot
+                    });
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+                break;
+                case 'ps':          //plant started
+                    name     = data[3]
+                break;
+                case 'bp':          //bomb planted
+                    name     = data[3]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, name: name } 
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+                break;
+                case 'ds':          //defuse started
+                    name     = data[3]
+                    site     = data[4]
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, name: name }
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+                break;
+                case 'bd':          //bomb defused
+                    name     = data[3]
+                break;
+                case 'fb':          //player_blind
+                    name     = data[3];
+                    team     = data[4];
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, name: name } 
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+              break;
+              case 'hed':         //hegrenade_detonate
+                    name     = data[3];
+                    team     = data[4];
+                    x        = data[5];
+                    y        = data[6];
+                    z        = data[7];
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, name: name, team: team, x: x, y: y, z: z }
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+                break;
+              case 'cm':         //current_map
+                    map     = data[1];
+                    payload  = JSON.stringify(
+                    { type: type, map: map}
+                    );
+                    console.log(warn(payload));
+                    payload  = JSON.parse(payload);
+                    dbsave(payload);
+                    GAME_STATE.mapName = map;
+                    console.log(GAME_STATE.mapName);
+                break;
+                default: 
+                    console.log(green('FART'));
+            } 
+        }); 
+            dbsave = function (payload){        //DB save function for cases
+                db.save(payload,function (err, res) {
+                if (err) {
+                    console.log(error('Error: ', err));
+                } else {
+                    console.log(notice('Saved as', res));
+                };
+                });
+            };
+    });
 
 // Handle incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {

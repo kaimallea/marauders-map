@@ -62,7 +62,7 @@ db.exists(function (err, exists) {
     } else if (exists) {
       console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
     } else {
-      console.log(warning('db does not exist, creating...'));
+      console.log(warn('db does not exist, creating...'));
       db.create();
     }
 });
@@ -82,44 +82,73 @@ dbfeed.on('change', function(change) {
     sec  = time - min *60;
     min  = String("0" + min).slice(-2);
     sec  = String("0" + sec).slice(-2);
-    if (doc.plant == 1) {
+    
+    if (doc.plant == 1) {           //Sets plant bool for changing timer var color
         time = ic.red('[')+ic.white(min)+ic.red(':')+ic.white(sec)+ic.red(']');
     } else {
         time = ic.white('[')+ic.green(min)+ic.white(':')+ic.green(sec)+ic.white(']');
     };
+    if (doc.ateam == 2) {           //Sets irc color for attacker var
+        attacker = ic.red(doc.attacker)
+        } else if(doc.ateam == 3) {
+        attacker = ic.navy(doc.attacker)
+    }
+    if (doc.vteam == 2) {           //Sets irc color for victim var
+        victim = ic.red(doc.victim)
+        } else if(doc.vteam == 3) {
+        victim = ic.navy(doc.victim)
+    }
+    if (doc.team == 2) {            //Sets irc color for client var
+        name = ic.red(doc.name)
+        } else if(doc.team == 3) {
+        name = ic.navy(doc.name)
+    }
     switch (doc.type) {
-        case "pd":
+        case "pd":      //Handle Player Death
             if (doc.headshot == 1) {
             bot.say(
             '#wpcsgo'
-            , time+'['+ic.red(doc.attacker)+'] killed ['+ic.navy(doc.victim)+'] with a ['+doc.weapon+'] [H]'
+            , time+'['+attacker+'] killed ['+victim+'] with a ['+doc.weapon+'] [o'+ic.red('<')+']'
             );
             } else { 
             bot.say(
             '#wpcsgo'
-            , time+'['+ic.red(doc.attacker)+'] killed ['+ic.navy(doc.victim)+'] with a ['+doc.weapon+']'
+            , time+'['+attacker+'] killed ['+victim+'] with a ['+doc.weapon+']'
             );
             }
             break;
-        case "fb":
+        case "fb":      // Handle Flashbangs
             bot.say(
             '#wpcsgo'
-            , '['+ic.red(doc.name)+'] is blinded by a flashbang!]'
+            , '['+name+'] is blinded by a flashbang!]'
             ); 
             break;
-        case "re":
+        case "re":      // Handle Round End
             bot.say(
             '#wpcsgo'
             , time+ ' Team ['+ic.red(doc.winner)+'] won the round ['+ic.blue('reason'+doc.reason)+']'
             );
             break;
-        case "bp":
+        case "bp":      // Handle Bomb Planted
             bot.say(
             '#wpcsgo'
             , time+'['+ic.red(doc.name)+']'+'planted the bomb.'
             );
             break;
-        default: bot.say('#hackers', "fart");
+        case "bd":      // Handle Bomb Defused
+            bot.say(
+            '#wpcsgo'
+            , time+'['+ic.navy(doc.name)+']'+'defused the bomb.'
+            );
+        break;
+
+        case "hed":     //Handle He Detonated 
+            bot.say(
+            '#wpcsgo'
+            , time+'['+name+']'+'\'s HE exploded at ['+ic.red('X: '+doc.x+' Y: '+doc.y)+']'
+            );
+        break;
+        default: bot.say('#wpcsgo', "fart");
     }
     });
 });
