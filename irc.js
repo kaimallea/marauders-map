@@ -84,9 +84,9 @@ dbfeed.on('change', function(change) {
     sec  = String("0" + sec).slice(-2);
     
     if (doc.plant == 1) {           //Sets plant bool for changing timer var color
-        time = ic.red('[')+ic.white(min)+ic.red(':')+ic.white(sec)+ic.red(']');
+        time = ic.red(min)+ic.white(':')+ic.red(sec);
     } else {
-        time = ic.white('[')+ic.green(min)+ic.white(':')+ic.green(sec)+ic.white(']');
+        time = ic.green(min)+ic.white(':')+ic.green(sec);
     };
     if (doc.ateam == 2) {           //Sets irc color for attacker var
         attacker = ic.red(doc.attacker)
@@ -106,14 +106,20 @@ dbfeed.on('change', function(change) {
     switch (doc.type) {
         case "pd":      //Handle Player Death
             if (doc.headshot == 1) {
+            headshot = 'o'+ic.red('<');
             bot.say(
             '#wpcsgo'
-            , time+'['+attacker+'] killed ['+victim+'] with a ['+doc.weapon+'] [o'+ic.red('<')+']'
+            , util.format('[%s] [%s] killed [%s] with a [%s] [%s]'
+            , time, attacker, victim, doc.weapon, headshot
+            )
+            //, time+'['+attacker+'] killed ['+victim+'] with a ['+doc.weapon+'] [o'+ic.red('<')+']'
             );
             } else { 
             bot.say(
             '#wpcsgo'
-            , time+'['+attacker+'] killed ['+victim+'] with a ['+doc.weapon+']'
+            , util.format('[%s] [%s] killed [%s] with a [%s]' 
+            , time, attacker, victim, doc.weapon 
+            )
             );
             }
             break;

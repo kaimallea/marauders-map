@@ -2,7 +2,7 @@
 #include <sdktools>
 #include <cstrike>
 #include <socket>
-
+#include <console>
 #define PLUGIN_VERSION  "0.1.1"
 #define HOSTNAME        "127.0.0.1"
 #define UDP_PORT        1338
@@ -26,21 +26,21 @@ new gRoundTime     = 0;                 //RoundTimer
 new gTick          = 0;                 //Tick Tock
 
 //ConVar Handles
-new Handle:g_c4Timer
-
-// Set up Event handlers for csgo specific events.
-public OnPluginStart()
+new Handle:g_c4Timer;
+new Handle:g_isLive;                 //Sets our plugin as live
+public OnPluginStart()               // Set up Event handlers for csgo specific events.
 {   
-    //ConVar Binding
-    g_c4Timer = FindConVar("mp_c4timer");
+    //ConVars
+    g_isLive  = CreateConVar("wp_live", "0", "Set Marauder to live. 0 Default");                //creates our convar to set plugin to live
+    g_c4Timer = FindConVar("mp_c4timer");                   //fetches c4 time from convar
     //TCP & UDP Sockets
-    tSocket = SocketCreate(SOCKET_TCP, OnSocketError);
+    tSocket   = SocketCreate(SOCKET_TCP, OnSocketError);
     SocketConnect(tSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, TCP_PORT);
-    uSocket = SocketCreate(SOCKET_UDP, OnSocketError); 
+    uSocket   = SocketCreate(SOCKET_UDP, OnSocketError); 
     SocketConnect(uSocket, OnSocketConnect, OnSocketReceive, OnSocketDisconnect, HOSTNAME, UDP_PORT);
     //HookEvents go to EventHandler
-    HookEvent("hegrenade_detonate", EventHandler); //needs work
-    //HookEvent("weapon_fire", EventHandler); //needs work
+    HookEvent("hegrenade_detonate", EventHandler);          //rdy
+    HookEvent("weapon_fire", EventHandler); 
     HookEvent("round_end", EventHandler);                   //rdy 
     HookEvent("player_death", EventHandler);                //rdy
     HookEvent("player_blind", EventHandler);                //rdy
@@ -52,8 +52,10 @@ public OnPluginStart()
     HookEvent("bomb_planted", EventHandler);                //rdy
     HookEvent("flashbang_detonate", EventHandler);          //rdy
     HookEvent("smokegrenade_detonate", EventHandler);       //rdy
-    HookEvent("molotov_detonate", EventHandler);
-    HookEvent("decoy_detonate", EventHandler);
+    HookEvent("molotov_detonate", EventHandler);            //rdy
+    HookEvent("decoy_detonate", EventHandler);              //rdy
+    //HookConVarChange here we hook our convars to functions
+    HookConVarChange(g_isLive, GameLive);
 
 }
 
@@ -75,6 +77,34 @@ public OnMapEnd()   //MUST BE PAIREDWITH OnMapStart()
     rStart         = false;
 }
 
+public GameLive(Handle:convar, const String:oldValue[], const String:newValue[])
+{
+    PrintToServer("PeekaBoo")
+    new isLive = GetConVarInt(g_isLive)
+    if (isLive == 1)
+    {   
+        PrintToServer("ICU")
+        new String:target_name[MAX_TARGET_LENGTH];
+        new target_list[MAXPLAYERS], target_count;
+        new bool:tn_is_ml;
+        for (new i = 1; i < MAXPLAYERS; i++)
+        {
+            decl String:client[64];
+            new isInGame  = IsClientInGame(i);
+            if(isInGame   = true)
+            {
+            new userId    = i;
+            new clientId  = GetClientOfUserId(userId);
+            GetClientName(clientId, client, sizeof(client));
+            PrintToServer(" %i. %i. %s.", clientId, userId, client)
+            }
+        }
+            
+    }
+    return Plugin_Handled
+}
+
+
 public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
 {
     if (StrEqual(name, "player_death"))            // Prints player_death info to server 
@@ -82,34 +112,33 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         decl String:weapon[64];
         new victimId      = GetEventInt(event, "userid")
         new attackerId    = GetEventInt(event, "attacker")
+        new penetrated    = GetEventInt(event, "penetrated")
         new bool:headshot = GetEventBool(event, "headshot")
         GetEventString(event, "weapon", weapon, sizeof(weapon))
 
         decl String:aname[64], String:vname[64];
-        new victim    = GetClientOfUserId(victimId)
-        new attacker  = GetClientOfUserId(attackerId)
-        new ateam     = GetClientTeam(attacker)
-        new vteam     = GetClientTeam(victim)
+        new victim        = GetClientOfUserId(victimId)
+        new attacker      = GetClientOfUserId(attackerId)
+        new ateam         = GetClientTeam(attacker)
+        new vteam         = GetClientTeam(victim)
         GetClientName(attacker, aname, sizeof(aname))
         GetClientName(victim, vname, sizeof(vname))
         decl String:info[128]
         Format(info
                 , sizeof(info)
-            , "pd,%i,%i,%s,%s,%i,%i,%s,%d"
-            , gRoundTime, bStart, aname, vname, ateam, vteam, weapon, headshot        
+            , "pd,%i,%i,%s,%s,%i,%i,%s,%d,%i"
+            , gRoundTime, bStart, aname, vname, ateam, vteam, weapon, headshot, penetrated        
             )
         SocketSend(tSocket, info)
     }
     else if (StrEqual(name, "round_start"))        //Round Start Procedures 
     {
     }
-    
     else if (StrEqual(name, "round_freeze_end"))   //Procedures after freezetime ends 
     {
         rStart = true;
         CreateTimer(1.0, RoundTime, _, TIMER_REPEAT);
     }
-    
     else if (StrEqual(name, "round_end"))          // Prints Round End Status to server, Test
     {
         new winner    = GetEventInt(event, "winner");
@@ -181,6 +210,44 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
                 )
         SocketSend(tSocket, info)
     }
+    else if (StrEqual(name, "molotov_detonate"))      //Sends location and owner of fb.
+    {
+        decl Float:pos[3], String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client   = GetClientOfUserId(clientId)
+        new team     = GetClientTeam(client)
+        pos[0]       = GetEventFloat(event, "x")
+        pos[1]       = GetEventFloat(event, "y")
+        pos[2]       = GetEventFloat(event, "z")
+        GetClientName(client, cname, sizeof(cname))
+
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "mgd, %i, %d, %s, %i, %f, %f, %f"
+                , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
+                )
+        SocketSend(tSocket, info)
+    }
+    else if (StrEqual(name, "decoy_detonate"))      //Sends location and owner of fb.
+    {
+        decl Float:pos[3], String:cname[64];
+        new clientId = GetEventInt(event, "userid")
+        new client   = GetClientOfUserId(clientId)
+        new team     = GetClientTeam(client)
+        pos[0]       = GetEventFloat(event, "x")
+        pos[1]       = GetEventFloat(event, "y")
+        pos[2]       = GetEventFloat(event, "z")
+        GetClientName(client, cname, sizeof(cname))
+
+        decl String:info[64]
+        Format(info
+                , sizeof(info)
+                , "mgd, %i, %d, %s, %i, %f, %f, %f"
+                , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
+                )
+        SocketSend(tSocket, info)
+    }
     else if (StrEqual(name, "player_blind"))
     {
         decl String:cname[64];
@@ -207,13 +274,15 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         new client = GetClientOfUserId(clientId)
         new bool:silenced = GetEventBool(event, "silenced")
         GetClientName(client, cname, sizeof(cname))
-        GetEntPropVector(clientId, Prop_Send, "m_vecOrigin", pos)
         GetEventString(event, "weapon", weapon, sizeof(weapon));
-        PrintToServer(
-            "%s fired a %s (silenced: %d) from location: x:%fy:%fz:%f"
-            , cname, weapon, silenced, pos[0], pos[1], pos[2]
-        )
-
+        
+        decl String:info[64]
+        Format(info
+              , sizeof(info)
+              , "wf,%i,%d,%s,%s,%d,"
+              , gRoundTime, bStart, cname, weapon, silenced 
+              )
+        SocketSend(uSocket, info) //UDP 
     }
     else if (StrEqual(name, "player_hurt"))
     {
@@ -234,10 +303,13 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         GetClientName(attacker, aname, sizeof(aname))
         GetClientName(victim, vname, sizeof(vname))
         GetClientName(assister, assname, sizeof(assname))
-        //PrintToServer(
+        decl String:info[64];
+        Format(info
+            , sizeof(info)
+            , "ph,%i,%s,%s,%s"
+            , gRoundTime, bStart, aname, vname 
         //    " %s was shot in the %s by %s for %i ammount of dmg, there of %i armor. (hs: %d)"
-        //    , vname, hitgroup, aname, dmg_health, dmg_armor, headshot 
-        //)
+            )
     }
     else if (StrEqual(name, "bomb_planted"))
     {
@@ -277,25 +349,25 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
         PrintToServer("---%i----",bombSite)
     }
 }
-//UDP SEND
+//Player Position Package.  --consider dropping bomb info and using events for it.
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
 {
-        if (gReady)
-    {
-        decl team, bomb, Float:pos[3];
+    if (gReady)
+{
+    decl Float:pos[3];
 
-        team = GetClientTeam(client);
-        bomb = (GetPlayerWeaponSlot(client, 4) != -1) ? 1: 0; // Is player carrying the bomb?
-        GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos); // Get player's position (x,y,z)
+    new team = GetClientTeam(client);
+    new bomb = (GetPlayerWeaponSlot(client, 4) != -1) ? 1: 0; // Is player carrying the bomb?
+    GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos); // Get player's position (x,y,z)
 
-        decl String:playerInfo[64];
-        Format(playerInfo
-                , sizeof(playerInfo)
-                , "p,%d,%d,%d,%f,%f,%f,%f" // p,id,team,bomb,x,y,z,yaw
-                , client, team, bomb, pos[0], pos[1], pos[2], ang[1]
-        );
+    decl String:playerInfo[64];
+    Format(playerInfo
+            , sizeof(playerInfo)
+            , "p,%d,%d,%d,%f,%f,%f,%f" // p,id,team,bomb,x,y,z,yaw
+            , client, team, bomb, pos[0], pos[1], pos[2], ang[1]
+    );
 
-        SocketSend(uSocket, playerInfo);
+    SocketSend(uSocket, playerInfo);
 }
 }
 //Sockets
