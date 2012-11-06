@@ -59,49 +59,43 @@ public OnPluginStart()               // Set up Event handlers for csgo specific 
 
 }
 
-public OnMapStart() //MUST BE PAIRED WITH OnMapEnd()
-{
-    decl String:mapname[64];
-    GetCurrentMap(mapname, sizeof(mapname));
-        decl String:info[64];
-    Format(info
-        , sizeof(info)
-        , "cm,%s"
-        , mapname
-        )
-    SocketSend(tSocket, info)
-}
-public OnMapEnd()   //MUST BE PAIREDWITH OnMapStart()
-{
-    bStart         = false;
-    rStart         = false;
-}
-
 public GameLive(Handle:convar, const String:oldValue[], const String:newValue[])
 {
-    PrintToServer("PeekaBoo")
     new isLive = GetConVarInt(g_isLive)
     if (isLive == 1)
     {   
-        PrintToServer("ICU")
-        new String:target_name[MAX_TARGET_LENGTH];
-        new target_list[MAXPLAYERS], target_count;
-        new bool:tn_is_ml;
-        for (new i = 1; i < MAXPLAYERS; i++)
+        for (new i = 1; i < MAXPLAYERS; i++)            //Gets all players, sends to node
         {
-            decl String:client[64];
+            decl String:client[64], String:steamId[64]; 
             new isInGame  = IsClientInGame(i);
             if(isInGame   = true)
             {
-            new userId    = i;
-            new clientId  = GetClientOfUserId(userId);
+            new clientId  = i;
+            new userId    = GetClientUserId(clientId);
+            new team      = GetClientTeam(clientId);
             GetClientName(clientId, client, sizeof(client));
-            PrintToServer(" %i. %i. %s.", clientId, userId, client)
+            GetClientAuthString(clientId, steamId, sizeof(steamId));
+            
+            decl String:info[64];
+            Format(info
+                    , sizeof(info)
+                    , "match,%i,%i,%i,%s,%s"
+                    , clientId, userId, team, client, steamId
+                    );
+            SocketSend(uSocket, info); 
             }
         }
-            
+        decl String:mapname[64], String:mapname[64];        // Mapname
+        GetCurrentMap(mapname, sizeof(mapname));
+        Format(info
+            , sizeof(info)
+            , "cm,%s"
+            , mapname
+            )
+        SocketSend(tSocket, info);
+        
     }
-    return Plugin_Handled
+    return Plugin_Handled;
 }
 
 
@@ -133,6 +127,7 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
     }
     else if (StrEqual(name, "round_start"))        //Round Start Procedures 
     {
+
     }
     else if (StrEqual(name, "round_freeze_end"))   //Procedures after freezetime ends 
     {
@@ -353,7 +348,7 @@ public EventHandler(Handle:event, const String:name[], bool:dontBroadcast)
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
 {
     if (gReady)
-{
+    {
     decl Float:pos[3];
 
     new team = GetClientTeam(client);
@@ -368,7 +363,7 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
     );
 
     SocketSend(uSocket, playerInfo);
-}
+    }
 }
 //Sockets
 public OnSocketConnect(Handle:socket, any:arg)

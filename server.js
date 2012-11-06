@@ -93,37 +93,38 @@ var tcpServer = net.createServer(function (c) { //tcp server events handled
             time   = data[1];
             plant  = data[2];
             
-            switch(type) {      //Different cases, different db writes
-                case 're':          //round end
-                    winner   = data[3]
-                    reason   = data[4]
-                    payload  = JSON.stringify(
-                    { type: type, time: time, plant: plant, winner: winner, reason: reason }
-                    );
-                    console.log(warn(payload));
-                    payload  = JSON.parse(payload);
-                    dbsave(payload);
-                    if(winner == 2) {
-                        GAME_STATE.t.wins++
-                        console.log(error(GAME_STATE.t.wins))
-                    } else if(winner ==3) {
-                        GAME_STATE.ct.wins++
-                        console.log(notice(GAME_STATE.ct.wins))
-                    }
-                break;
-                case 'pd':          //player death
-                    attacker = data[3]
-                    victim   = data[4]
-                    ateam    = data[5]
-                    vteam    = data[6]
-                    weapon   = data[7]
-                    headshot = data[8]
-                    payload  = JSON.stringify(
-                    { type: type, time: time, plant: plant
-                    , victim: victim, attacker: attacker
-                    , vteam: vteam, ateam: ateam, weapon: weapon, headshot: headshot
-                    });
-                    console.log(warn(payload));
+                switch(type) {      //Different cases, different db writes
+
+                    case 're':          //round end
+                        winner   = data[3]
+                        reason   = data[4]
+                        payload  = JSON.stringify(
+                        { type: type, time: time, plant: plant, winner: winner, reason: reason }
+                        );
+                        console.log(warn(payload));
+                        payload  = JSON.parse(payload);
+                        dbsave(payload);
+                        if(winner == 2) {
+                            GAME_STATE.t.wins++
+                            console.log(error(GAME_STATE.t.wins))
+                        } else if(winner ==3) {
+                            GAME_STATE.ct.wins++
+                            console.log(notice(GAME_STATE.ct.wins))
+                        }
+                    break;
+                    case 'pd':          //player death
+                        attacker = data[3]
+                        victim   = data[4]
+                        ateam    = data[5]
+                        vteam    = data[6]
+                        weapon   = data[7]
+                        headshot = data[8]
+                        payload  = JSON.stringify(
+                        { type: type, time: time, plant: plant
+                        , victim: victim, attacker: attacker
+                        , vteam: vteam, ateam: ateam, weapon: weapon, headshot: headshot
+                        });
+                        console.log(warn(payload));
                     payload  = JSON.parse(payload);
                     dbsave(payload);
                 break;
@@ -215,7 +216,18 @@ udpServer.on('message', function (msg, rinfo) {
             
             break;
         
-        case 'r':
+        case 'match':
+            clientId = data[1];
+            userId   = data[2];
+            team     = data[3];
+            name     = data[4];
+            steamId  = data[5];
+            payload  = JSON.stringify(
+            { type: type, clientId: clientId, userId: userId, team: team, name: name, steamId: steamId }
+            );
+            console.log(warn(payload));
+            payload  = JSON.parse(payload);
+            dbsave(payload)
             
             console.log(error(data));
             break;
@@ -231,11 +243,11 @@ udpServer.on('message', function (msg, rinfo) {
 
 //Set up listens
 udpServer.on('listening', function () {
-    console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
+console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
 });
 
 tcpServer.listen(TCP_PORT, function () {
-    console.log(notice('TCP') + ' server listening on' + notice(' %d'), TCP_PORT);
+console.log(notice('TCP') + ' server listening on' + notice(' %d'), TCP_PORT);
 });
 
 httpServer.listen(HTTP_PORT);
