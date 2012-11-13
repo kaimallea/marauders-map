@@ -1,5 +1,13 @@
 /* Styles for de_dust2_se */
-.t, .ct {stroke:black;}
+.t, .ct {
+  stroke:black;
+  -webkit-translateZ(0);/* enable GPU rendering */ 
+  -moz-translateZ(0);
+  -ie-translateZ(0);
+  -o-translateZ(0);
+  translateZ(0);
+  text-rendering:optimizeSpeed;
+}
 .t {fill:rgba(180,62,62,1);}
 .ct {fill:rgba(90,90,213,1);}
 .name {fill:white;stroke:black;stroke-width:2px;font-family:Verdana;font-size:80px;text-anchor:middle;}

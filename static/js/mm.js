@@ -51,8 +51,8 @@
                                 .addEventListener('message', updatePosition, false);
 
 	
-	// requestAnimationFrame all the things!
-	// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+        // requestAnimationFrame all the things!
+        // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
         window.requestAnimationFrame = (function() {
             return window.requestAnimationFrame ||
                    window.webkitRequestAnimationFrame ||
