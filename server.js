@@ -7,9 +7,9 @@ var http = require('http'),
     dgram = require('dgram'),
     express = require('express'),
     io = require('socket.io'),
-    util = require('util'),
-    cradle = require('cradle'),
-    clc = require('cli-color');
+    util = require('util');
+    // cradle = require('cradle'),
+    // clc = require('cli-color');
 
 var webapp = express();
 var httpServer = http.createServer(webapp);
@@ -47,32 +47,32 @@ webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 });
 
 // Cli-color styling
-var error = clc.red;
-var warn = clc.yellow;
-var notice = clc.blue;
-var green = clc.green;
+// var error = clc.red;
+// var warn = clc.yellow;
+// var notice = clc.blue;
+// var green = clc.green;
 
 // Some couch/cradle specific vars
-cradle.setup({
-    host: '192.168.234.92',
-    cache: true,
-    raw: false,
-    });
-
-var c = new(cradle.Connection);
-var db = c.database('google-strike');
-
-// Checks if db exists, if not, creates.
-db.exists(function(err, exists) {
-    if (err) {
-        console.log('Error:', err);
-    } else if (exists) {
-      console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
-    } else {
-      console.log(warning('db does not exist, creating...'));
-      db.create();
-    }
-});
+// cradle.setup({
+//     host: '192.168.234.92',
+//     cache: true,
+//     raw: false,
+//     });
+// 
+// var c = new(cradle.Connection);
+// var db = c.database('google-strike');
+// 
+// // Checks if db exists, if not, creates.
+// db.exists(function(err, exists) {
+//     if (err) {
+//         console.log('Error:', err);
+//     } else if (exists) {
+//       console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
+//     } else {
+//       console.log(warning('db does not exist, creating...'));
+//       db.create();
+//     }
+// });
 
 // Database save method
 //
@@ -99,9 +99,9 @@ udpServer.on('message', function (msg, rinfo) {
                 util.format('%d,%d,%d,%d,%d,%d,%d', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
             );
             break;
-        case 'r':
-            console.log(error(data));
-            break;
+        // case 'r':
+        //     console.log(error(data));
+        //     break;
 
         // Unknown
         default:
