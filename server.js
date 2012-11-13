@@ -7,7 +7,9 @@ var http = require('http'),
     dgram = require('dgram'),
     express = require('express'),
     io = require('socket.io'),
-    util = require('util');
+    util = require('util'),
+    cradle = require('cradle'),
+    clc = require('cli-color');
 
 var webapp = express();
 var httpServer = http.createServer(webapp);
@@ -41,12 +43,51 @@ webapp.use(express.static(__dirname + '/static'));
 
 
 // HTTP requests to root should return index.html
-webapp.get('/', function (req, res) {
-    res.sendfile(__dirname + '/index.html');
+webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 });
 
+// Cli-color styling
+var error = clc.red;
+var warn = clc.yellow;
+var notice = clc.blue;
+var green = clc.green;
 
-// Handle incoming UDP packets
+// Some couch/cradle specific vars
+cradle.setup({
+    host: '192.168.234.92',
+    cache: true,
+    raw: false,
+    });
+
+var c = new(cradle.Connection);
+var db = c.database('google-strike');
+
+// Checks if db exists, if not, creates.
+db.exists(function(err, exists) {
+    if (err) {
+        console.log('Error:', err);
+    } else if (exists) {
+      console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
+    } else {
+      console.log(warning('db does not exist, creating...'));
+      db.create();
+    }
+});
+
+// Database save method
+//
+// 
+//
+//db.save(json, function (err, res) {
+//    if (err) {
+//      console.log(error('error', err));
+//    } else {
+//        console.log(notice('Saved as', res));
+//    }
+//  });
+
+
+// le incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
     var data = msg.toString().split(',');
 
@@ -58,6 +99,9 @@ udpServer.on('message', function (msg, rinfo) {
                 util.format('%d,%d,%d,%d,%d,%d,%d', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
             );
             break;
+        case 'r':
+            console.log(error(data));
+            break;
 
         // Unknown
         default:
@@ -65,10 +109,10 @@ udpServer.on('message', function (msg, rinfo) {
 });
 
 udpServer.on('listening', function () {
-    console.log('UDP server listening on %d', UDP_PORT);
+    console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
 });
 
 httpServer.listen(HTTP_PORT);
-console.log('HTTP server listening on %d', HTTP_PORT);
+console.log(notice('HTTP') + ' server listening on' + notice(' %d'), HTTP_PORT);
 
 udpServer.bind(UDP_PORT);

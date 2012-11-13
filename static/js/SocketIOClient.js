@@ -82,5 +82,5 @@ function onNameUpdate (data) {
 (function initSocket () {
     io.connect('http://' + location.hostname)
         .on('position', onPositionUpdate)
-        .on('names', onNameUpdate);
+        .on('names', onNamesUpdate);
 }());
