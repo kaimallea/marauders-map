@@ -38,25 +38,6 @@ function onPositionUpdate (data) {
     data[6] = yaw;
 
     postMessage(data.join(','));
-
-    return;
-
-    var len;
-    if ( !(len = data.pos.length) ) { return; }
-
-    while (len >= 1) {
-        var id = data.pos[len-1].id,
-            dataset = data.pos[len-1],
-            p = PLAYERS_INDEX[id];
-
-        if (p) {
-            p.updatePosition(dataset);
-        } else {
-            PLAYERS_INDEX[id] = new Player(dataset);
-        }
-
-        --len;
-    }    
 }
 
 // Callback when names are broadcasted

@@ -64,13 +64,6 @@
                    };
         })();
 
-        /*
-        var p = MM.createPlayer({id: 1, team: 'ct'});
-        p.setName('Obama');
-        p.moveTo(-421.77, 6459.80);
-        p.rotate(90);
-        */
-
         console.log('MM initialized');
 
     }
