@@ -30,7 +30,7 @@
         }
 
         requestAnimationFrame(function() {
-            PLAYERS[id].moveTo(x, y, yaw);//.rotate(yaw);
+            PLAYERS[id].moveTo(x, y).rotate(yaw);
         });
     }
 
@@ -102,7 +102,7 @@
         options.name = options.name || options.team.toUpperCase();
         options.id = 'id' + options.id;
 
-        var group   = createEl('g', {id: options.id});
+        var group = this.el = createEl('g', {id: options.id});
         this.markerEl = createEl('use', {'xlink:href': '#' + options.team + '-marker', className: options.team});
         this.nameEl    = createEl('text', {x: 0, y: 135, className: 'name'});
         this.nameEl.textContent = options.name;
@@ -112,9 +112,7 @@
 
         DEFS.appendChild(group);
 
-        this.el = createEl('use', {'xlink:href': '#' + options.id});
-
-        PLAYERS.appendChild(this.el);
+        PLAYERS.appendChild(group);
     }
 
     // Methods and properties available to all MMPlayer instances
@@ -124,8 +122,8 @@
             return this;
         },
 
-        moveTo: function (x, y, yaw) { // Translate player group to x,y position
-            this.el.setAttribute('transform', 'translate(' + x + ',' + y + ') rotate(' + yaw + ')');
+        moveTo: function (x, y) { // Translate player group to x,y position
+            this.el.setAttribute('transform', 'translate(' + x + ',' + y + ')');
             return this;
         },
 
