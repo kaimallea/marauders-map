@@ -30,7 +30,7 @@
         }
 
         requestAnimationFrame(function() {
-            PLAYERS[id].moveTo(x, y).rotate(yaw);
+            PLAYERS[id].moveTo(x, y, yaw);//.rotate(yaw);
         });
     }
 
@@ -50,7 +50,9 @@
         var positionWorker = new Worker('/js/SocketIOClient.js')
                                 .addEventListener('message', updatePosition, false);
 
-
+	
+	// requestAnimationFrame all the things!
+	// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
         window.requestAnimationFrame = (function() {
             return window.requestAnimationFrame ||
                    window.webkitRequestAnimationFrame ||
@@ -129,8 +131,8 @@
             return this;
         },
 
-        moveTo: function (x, y) { // Translate player group to x,y position
-            this.el.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+        moveTo: function (x, y, yaw) { // Translate player group to x,y position
+            this.el.setAttribute('transform', 'translate(' + x + ',' + y + ') rotate(' + yaw + ')');
             return this;
         },
 
