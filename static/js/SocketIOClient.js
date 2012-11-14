@@ -6,62 +6,48 @@ importScripts('/socket.io/socket.io.js');
 
 // Callback when positions are updated
 function onPositionUpdate (data) {
-    data = data.split(',');
-
-    var team = data[1],
-        y    = data[4],
-        yaw  = data[6],
-        offsetY = 3380;
-
-    // normalize team
-    team = parseInt(team, 10);
-    if (team === 2) {
-        team = 't';
-    } else if (team === 3) {
-        team = 'ct';
-    } else {
-        return;
-    }
+    data = JSON.parse(data);
     
-    data[1] = team;
+    var id = 9;
+    while (id > 0) {
+        //data[id][team,x,y,z,yaw];
+        var team = data[id][0],
+            y    = data[id][2],
+            yaw  = data[id][4],
+            offsetY = 3380;
 
-    // normalize y
-    if (y < 0) {
-        y = Math.abs(y) + (offsetY * 2);
-    } else {
-        y = offsetY + (offsetY - y);
-    }
-    data[4] = y;
-
-    // normalize yaw
-    yaw = -yaw + 90;
-    data[6] = yaw;
-
-    postMessage(data.join(','));
-}
-
-// Callback when names are broadcasted
-function onNameUpdate (data) {
-    var len;
-    if ( !(len = data.names.length) ) { return; }
-
-    while (len >= 1) {
-        var id = data.names[len-1].id,
-            name = data.names[len-1].name,
-            p = PLAYERS_INDEX[id];
-
-        if (p) {
-            p.setName(name);
+        // normalize team
+        team = parseInt(team, 10);
+        if (team === 2) {
+            team = 't';
+        } else if (team === 3) {
+            team = 'ct';
+        } else {
+            continue;
         }
+ 
+        data[id][0] = team;
 
-        --len;
+        // normalize y
+        if (y < 0) {
+            y = Math.abs(y) + (offsetY * 2);
+        } else {
+            y = offsetY + (offsetY - y);
+        }
+        data[id][2] = y;
+
+        // normalize yaw
+        yaw = -yaw + 90;
+        data[id][4] = yaw;
+
+        id--;
     }
-}
 
+    postMessage(JSON.stringify(data));
+}
 
 // Initialize web socket communication
 (function initSocket () {
     io.connect('http://' + location.hostname)
-        .on('position', onPositionUpdate)
-        .on('names', onNamesUpdate);
+        .on('position', onPositionUpdate);
 }());
