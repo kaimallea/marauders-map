@@ -9,6 +9,7 @@
 
     // Globals inside this anonymous func
     var SVGDOC, DEFS, T_MARKER, CT_MARKER, PLAYERS = [];
+    var positionWorker;
 
 
     function updatePosition(message) {
@@ -29,9 +30,13 @@
       });
     }
 
-        requestAnimationFrame(function() {
-            PLAYERS[id].moveTo(x, y).rotate(yaw);
-        });
+    function handleVisibilityChange() {
+      if (document.hidden || document.webkitHidden || document.mozHidden || document.msHidden) {
+        positionWorker.terminate();
+      } else {
+        positionWorker = new Worker('/js/SocketIOClient.js');
+        positionWorker.addEventListener('message', updatePosition, false);
+      }
     }
 
 
@@ -47,10 +52,9 @@
         PLAYERS     = SVGDOC.getElementById('players'); // <g id="players">...</g>
 
         // Create and start worker
-        var positionWorker = new Worker('/js/SocketIOClient.js')
-                                .addEventListener('message', updatePosition, false);
+        positionWorker = new Worker('/js/SocketIOClient.js');
+        positionWorker.addEventListener('message', updatePosition, false);
 
-	
         // requestAnimationFrame all the things!
         // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
         window.requestAnimationFrame = (function() {
@@ -66,6 +70,14 @@
 
         console.log('MM initialized');
 
+        // Setup page visibility handler, if supported
+        var isHiddenSupported = typeof (document.hidden || document.webkitHidden || document.mozHidden || document.msHidden);
+        if (typeof isHiddenSupported !== 'undefined') {
+          document.addEventListener('visibilitychange', handleVisibilityChange, false);
+          document.addEventListener('webkitvisibilitychange', handleVisibilityChange, false);
+          document.addEventListener('mozvisibilitychange', handleVisibilityChange, false);
+          document.addEventListener('msvisibilitychange', handleVisibilityChange, false);
+        }
     }
 
 
