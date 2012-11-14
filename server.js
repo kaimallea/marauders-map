@@ -87,6 +87,11 @@ webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 //  });
 
 
+var POSITIONS = [
+  [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0],
+  [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0]
+];
+
 // le incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
     var data = msg.toString().split(',');
@@ -94,10 +99,7 @@ udpServer.on('message', function (msg, rinfo) {
     switch(data[0]) {
         // Positions
         case 'p':
-            webSocketServer.sockets.emit('position',
-                // id,team,bomb,x,y,z,yaw
-                util.format('%d,%d,%d,%d,%d,%d,%d', data[1], data[2], data[3], data[4], data[5], data[6], data[7])
-            );
+            POSITIONS[ data[1] ] = [ data[2], data[3], data[4], data[5], data[6] ];
             break;
         // case 'r':
         //     console.log(error(data));
@@ -116,3 +118,9 @@ httpServer.listen(HTTP_PORT);
 console.log(notice('HTTP') + ' server listening on' + notice(' %d'), HTTP_PORT);
 
 udpServer.bind(UDP_PORT);
+
+function sendPositions() {
+  webSocketServer.sockets.emit('position', JSON.stringify(POSITIONS));
+}
+
+setInterval(sendPositions, 1000/33);

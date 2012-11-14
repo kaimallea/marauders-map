@@ -12,22 +12,22 @@
 
 
     function updatePosition(message) {
-        var data    = message.data.split(','),
-            id      = data[0],
-            team    = data[1],
-            bomb    = data[2],
-            x       = data[3],
-            y       = data[4],
-            z       = data[5],
-            yaw     = data[6];
+      message = JSON.parse(message.data);
 
-        if (!PLAYERS[id]) {
-            PLAYERS[id] = MM.createPlayer({
-                id: id,
-                team: team
-            });
-            return;
-        }
+      requestAnimationFrame(function() {
+          var id = 9;
+          while (id > 0) {
+            if (!PLAYERS[id]) {
+                PLAYERS[id] = MM.createPlayer({
+                    id: id,
+                    team: message[id][0]
+                });
+            }
+            PLAYERS[id].moveTo(message[id][1], message[id][2]).rotate(message[id][4]);
+            id--;
+          }
+      });
+    }
 
         requestAnimationFrame(function() {
             PLAYERS[id].moveTo(x, y).rotate(yaw);
