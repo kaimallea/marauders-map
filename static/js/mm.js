@@ -158,22 +158,27 @@
         PLAYERS.appendChild(group);
     }
 
-    // Methods and properties available to all MMPlayer instances
-    MMPlayer.prototype = {
-        rotate: function (D) { // Rotate the marker by D degrees
-            this.markerEl.setAttribute('transform', 'rotate(' + D + ')');
-            return this;
-        },
 
-        moveTo: function (x, y) { // Translate player group to x,y position
-            this.el.setAttribute('transform', 'translate(' + x + ',' + y + ')');
-            return this;
-        },
+    /**
+     * Methods and properties available to all MMPlayer instances
+     */
 
-        setName: function (name) { // Set name of player
-            this.nameEl.textContent = name;
-            return this;
-        }
+    // Rotate the marker by D degrees
+    MMPlayer.prototype.rotate = function (D) {
+      this.markerEl.setAttribute('transform', 'rotate(' + D + ')');
+      return this;
+    };
+
+    // Translate player group to x,y position
+    MMPlayer.prototype.moveTo = function (x, y) {
+      this.el.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+      return this;
+    };
+
+    // Set name of player
+    MMPlayer.prototype.setName = function (name) {
+      this.nameEl.textContent = name;
+      return this;
     };
 
 
