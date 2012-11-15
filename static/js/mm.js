@@ -36,8 +36,8 @@
             }
 
             PLAYERS[id]
-              .moveTo(message[id][1], message[id][2])
-              .rotate(message[id][4]);
+              .moveTo(message[id][1], message[id][2]) // translate to x,y
+              .rotate(message[id][4]);                // rotate by yaw
 
             id--;
           }
