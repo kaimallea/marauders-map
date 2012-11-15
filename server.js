@@ -45,6 +45,14 @@ webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 });
 
 
+
+// Table of player names, indexed by id
+// TODO: Names can be indexed by any number, not just 0-9
+var NAMES = ['','','','','','','','','',''];
+var namesUpdated = false;
+
+// Table of player positions, indexed by id (0-9)
+// TODO: player ids can be any number, not just 0-9
 var POSITIONS = [
   [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0],
   [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0]
@@ -58,6 +66,14 @@ udpServer.on('message', function (msg, rinfo) {
         // Positions
         case 'p':
             POSITIONS[ data[1] ] = [ data[2], data[3], data[4], data[5], data[6] ];
+            break;
+        case 'n':
+            var id = 10;
+            while (i > 1) {
+              NAMES[id] = data[id];
+              --id;
+            }
+            namesUpdated = true;
             break;
         // case 'r':
         //     console.log(error(data));
@@ -77,8 +93,16 @@ console.log('HTTP server listening on %d', HTTP_PORT);
 
 udpServer.bind(UDP_PORT);
 
+function sendNames() {
+  if (namesUpdated) {
+    webSocketServer.sockets.emit('names', JSON.stringify(NAMES));
+    namesUpdated = false;
+  }
+}
+
 function sendPositions() {
   webSocketServer.sockets.emit('position', JSON.stringify(POSITIONS));
 }
 
 setInterval(sendPositions, 1000/33);
+setInterval(sendNames, 1000*10);
