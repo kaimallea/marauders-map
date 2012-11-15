@@ -12,34 +12,57 @@
     var positionWorker;
 
 
+    /**
+     * Update positions of all players
+     */
     function updatePosition(message) {
       message = JSON.parse(message.data);
 
       requestAnimationFrame(function() {
           var id = 9;
+          /**
+           * message[id][0] -> team ('ct' or 't')
+           * message[id][1] -> x
+           * message[id][2] -> y
+           * message[id][3] -> z
+           * message[id][4] -> yaw
+           */
           while (id > 0) {
-            if (!PLAYERS[id]) {
+            if (!PLAYERS[id]) { // Check if this player is new
                 PLAYERS[id] = MM.createPlayer({
                     id: id,
                     team: message[id][0]
                 });
             }
-            PLAYERS[id].moveTo(message[id][1], message[id][2]).rotate(message[id][4]);
+
+            PLAYERS[id]
+              .moveTo(message[id][1], message[id][2])
+              .rotate(message[id][4]);
+
             id--;
           }
       });
     }
 
+
+    /**
+     * Callback when the page's visibilty changes
+     */
     function handleVisibilityChange() {
       if (document.hidden || document.webkitHidden || document.mozHidden || document.msHidden) {
+        // Go Green. Terminate the worker when the page is hidden
         positionWorker.terminate();
       } else {
+        // Restart worker when page is unhidden
         positionWorker = new Worker('/js/SocketIOClient.js');
         positionWorker.addEventListener('message', updatePosition, false);
       }
     }
 
 
+    /**
+     * Initialization, called when page is done loading
+     */
     function init() {
         // Get references to elements in SVG doc
         SVGDOC      = document.getElementById('map')
@@ -82,8 +105,7 @@
 
 
     /**
-     * Create a new element with optional attributes
-     *
+     * Create a new SVG element with optional attributes
      */
     function createEl (type, attrs) {
         type = type.toLowerCase();
@@ -107,13 +129,25 @@
 
 
     /**
-     * Player constructor
-     *
+     * MMPlayer constructor
+     * Each instance of MMPlayer represents a single player
      */
     function MMPlayer(options) {
         options.name = options.name || options.team.toUpperCase();
         options.id = 'id' + options.id;
 
+        /**
+         * Goal is to:
+         *
+         * 1. Create:
+         *
+         * <g id="#n">
+         *   <use xlink:href="#(ct|t)-marker" class="(ct|t)"></use>
+         *   <text x="0" y="135" class="name">Player name</text>
+         * </g>
+         *
+         * 2. Append to <g id="players>...</g> in SVGDOC
+         */
         var group = this.el = createEl('g', {id: options.id});
         this.markerEl = createEl('use', {'xlink:href': '#' + options.team + '-marker', className: options.team});
         this.nameEl    = createEl('text', {x: 0, y: 135, className: 'name'});
@@ -154,7 +188,7 @@
     }
 
 
-    // Methods available on the global "MM" object
+    // Publicly available methods, accessible via the global "MM" object
     MM.init = init;
     MM.createPlayer = createPlayer;
 }(this));
