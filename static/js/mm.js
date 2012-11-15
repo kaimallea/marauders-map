@@ -8,7 +8,7 @@
     var MM = global.MM = global.MM || {};
 
     // Globals inside this anonymous func
-    var SVGDOC, DEFS, T_MARKER, CT_MARKER, PLAYERS = [];
+    var SVGDOC, T_MARKER, CT_MARKER, PLAYERS = [];
     var positionWorker;
 
 
@@ -69,7 +69,6 @@
                         .getSVGDocument() // #Document
                         .getElementsByTagName('svg')[0]; // <svg>...</svg>
 
-        DEFS        = SVGDOC.getElementById('defs'); // <defs>...</defs>
         T_MARKER    = SVGDOC.getElementById('t-marker'); // <g id="t-marker">...</g>
         CT_MARKER   = SVGDOC.getElementById('ct-marker'); // <g id="ct-marker">...</g>
         PLAYERS     = SVGDOC.getElementById('players'); // <g id="players">...</g>
@@ -155,8 +154,6 @@
 
         group.appendChild(this.markerEl);
         group.appendChild(this.nameEl);
-
-        DEFS.appendChild(group);
 
         PLAYERS.appendChild(group);
     }
