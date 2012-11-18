@@ -45,41 +45,45 @@ webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 });
 
 
-
-// Table of player names, indexed by id
-// TODO: Names can be indexed by any number, not just 0-9
-var NAMES = ['','','','','','','','','',''];
-var namesUpdated = false;
-
 // Table of player positions, indexed by id (0-9)
 // TODO: player ids can be any number, not just 0-9
 var POSITIONS = [
+/*
   [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0],
   [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0]
+*/
 ];
+var positionsUpdated = false;
+
 
 // le incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
-    var data = msg.toString().split(',');
+    var data = msg.toString().split(','),
+        eventType = data[0],
+        id = parseInt(data[1], 10);
 
-    switch(data[0]) {
+    switch(eventType) {
         // Positions
         case 'p':
-            POSITIONS[ data[1] ] = [ data[2], data[3], data[4], data[5], data[6] ];
+            POSITIONS[id] = [ data[2], data[3], data[4], data[5], data[6] ];
+            positionsUpdated = true;
             break;
+        // Names
         case 'n':
-            var id = 10;
-            while (i > 1) {
-              NAMES[id] = data[id];
-              --id;
-            }
-            namesUpdated = true;
+            sendName(id, data[2]); // id, name
             break;
-        // case 'r':
-        //     console.log(error(data));
-        //     break;
-
-        // Unknown
+        // Death
+        case 'd':
+            sendPlayerDeath(id);
+            break;
+         // Spawn
+        case 's':
+            sendPlayerSpawn(id);
+            break;
+        // Low health
+        case 'lh':
+            sendLowHealth(id);
+            break;
         default:
     }
 });
@@ -93,16 +97,28 @@ console.log('HTTP server listening on %d', HTTP_PORT);
 
 udpServer.bind(UDP_PORT);
 
-function sendNames() {
-  if (namesUpdated) {
-    webSocketServer.sockets.emit('names', JSON.stringify(NAMES));
-    namesUpdated = false;
-  }
+function sendPlayerSpawn(id) {
+  webSocketServer.sockets.emit('spawn', JSON.stringify(id));
+
+}
+
+function sendLowHealth(id) {
+  webSocketServer.sockets.emit('lowhealth', JSON.stringify(id));
+}
+
+function sendPlayerDeath(id) {
+  webSocketServer.sockets.emit('death', JSON.stringify(id));
+}
+
+function sendName(id, name) {
+  webSocketServer.sockets.emit('name', JSON.stringify({id: id, name: name}));
 }
 
 function sendPositions() {
-  webSocketServer.sockets.emit('position', JSON.stringify(POSITIONS));
+  if (positionsUpdated) {
+    webSocketServer.sockets.emit('position', JSON.stringify(POSITIONS));
+    positionsUpdated = false;
+  }
 }
 
 setInterval(sendPositions, 1000/33);
-setInterval(sendNames, 1000*10);

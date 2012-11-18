@@ -7,7 +7,7 @@ importScripts('/socket.io/socket.io.js');
 // Callback when positions are updated
 function onPositionUpdate (data) {
     data = JSON.parse(data);
-    
+
     var id = 9;
     while (id > 0) {
         //data[id][team,x,y,z,yaw];
@@ -25,7 +25,7 @@ function onPositionUpdate (data) {
         } else {
             continue;
         }
- 
+
         data[id][0] = team;
 
         // normalize y
@@ -43,11 +43,70 @@ function onPositionUpdate (data) {
         id--;
     }
 
-    postMessage(JSON.stringify(data));
+    var payload = {
+      type: 'position',
+      data: JSON.parse(JSON.stringify(data))
+    }
+
+    postMessage(JSON.stringify(payload));
+}
+
+
+// Callback when names are updated
+function onNameUpdate(data) {
+  data = JSON.parse(data);
+
+  var payload = {
+    type: 'name',
+    data: data
+  };
+
+  postMessage(JSON.stringify(payload));
+}
+
+
+// Callback when when a player dies
+function onPlayerDeath(data) {
+  data = JSON.parse(data);
+
+  var payload = {
+    type: 'death',
+    data: data
+  };
+
+  postMessage(JSON.stringify(payload));
+}
+
+// Callback when when a player spawns
+function onPlayerSpawn(data) {
+  data = JSON.parse(data);
+
+  var payload = {
+    type: 'spawn',
+    data: data
+  };
+
+  postMessage(JSON.stringify(payload));
+}
+
+// Callback when when a player has low health
+function onPlayerLowHealth(data) {
+  data = JSON.parse(data);
+
+  var payload = {
+    type: 'lowhealth',
+    data: data
+  };
+
+  postMessage(JSON.stringify(payload));
 }
 
 // Initialize web socket communication
 (function initSocket () {
     io.connect('http://' + location.hostname)
-        .on('position', onPositionUpdate);
+        .on('position', onPositionUpdate)
+        .on('name', onNameUpdate)
+        .on('spawn', onPlayerSpawn)
+        .on('lowhealth', onPlayerLowHealth)
+        .on('death', onPlayerDeath);
 }());

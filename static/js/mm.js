@@ -13,31 +13,57 @@
 
 
     /**
+     * Handle incoming events from web worker
+     */
+    function onEventData(message) {
+      message = JSON.parse(message.data);
+
+      switch(message.type) {
+        case 'position':
+          updatePosition(message.data);
+          break;
+        case 'name':
+          updateName(message.data);
+          break;
+        case 'death':
+          playerDeath(message.data);
+          break;
+        case 'spawn':
+          playerSpawn(message.data);
+          break;
+        case 'lowhealth':
+          playerLowHealth(message.data);
+          break;
+        default:
+      }
+    }
+
+
+    /**
      * Update positions of all players
      */
-    function updatePosition(message) {
-      message = JSON.parse(message.data);
+    function updatePosition (data) {
 
       requestAnimationFrame(function() {
           var id = 9;
           /**
-           * message[id][0] -> team ('ct' or 't')
-           * message[id][1] -> x
-           * message[id][2] -> y
-           * message[id][3] -> z
-           * message[id][4] -> yaw
+           * data[id][0] -> team ('ct' or 't')
+           * data[id][1] -> x
+           * data[id][2] -> y
+           * data[id][3] -> z
+           * data[id][4] -> yaw
            */
           while (id > 0) {
             if (!PLAYERS[id]) { // Check if this player is new
                 PLAYERS[id] = MM.createPlayer({
                     id: id,
-                    team: message[id][0]
+                    team: data[id][0]
                 });
             }
 
             PLAYERS[id]
-              .moveTo(message[id][1], message[id][2]) // translate to x,y
-              .rotate(message[id][4]);                // rotate by yaw
+              .moveTo(data[id][1], data[id][2]) // translate to x,y
+              .rotate(data[id][4]);                // rotate by yaw
 
             id--;
           }
@@ -46,16 +72,60 @@
 
 
     /**
+     * Update player name
+     */
+    function updateName(data) {
+      if (PLAYERS[data.id]) {
+        PLAYERS[data.id].setName(data.name)
+      }
+    }
+
+
+    /**
+     * Player died
+     */
+    function playerDeath(id) {
+      if (PLAYERS[id]) {
+        PLAYERS[id].dead();
+        PLAYERS[id].fullHealth() // remove low health animation when dead
+      }
+    }
+
+
+    /**
+     * Player (re)spawned
+     */
+    function playerSpawn(id) {
+      if (PLAYERS[id]) {
+        PLAYERS[id].alive();
+      }
+    }
+
+
+    /**
+     * Set player as having low health
+     */
+    function playerLowHealth(id) {
+      if (PLAYERS[id]) {
+        PLAYERS[id].lowHealth();
+      }
+    }
+
+    /**
      * Callback when the page's visibilty changes
      */
     function handleVisibilityChange() {
       if (document.hidden || document.webkitHidden || document.mozHidden || document.msHidden) {
-        // Go Green. Terminate the worker when the page is hidden
+
+        // Go Green. Terminate the workers when the page is hidden
         positionWorker.terminate();
+
       } else {
-        // Restart worker when page is unhidden
+
+        // Restart workers when page is unhidden
         positionWorker = new Worker('/js/SocketIOClient.js');
-        positionWorker.addEventListener('message', updatePosition, false);
+        positionWorker.addEventListener('message', onEventData, false);
+
       }
     }
 
@@ -73,9 +143,10 @@
         CT_MARKER   = SVGDOC.getElementById('ct-marker'); // <g id="ct-marker">...</g>
         PLAYERS     = SVGDOC.getElementById('players'); // <g id="players">...</g>
 
-        // Create and start worker
+        // Create and start workers
         positionWorker = new Worker('/js/SocketIOClient.js');
-        positionWorker.addEventListener('message', updatePosition, false);
+        positionWorker.addEventListener('message', onEventData, false);
+
 
         // requestAnimationFrame all the things!
         // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -181,6 +252,29 @@
       return this;
     };
 
+    // Set player as being dead
+    MMPlayer.prototype.dead = function () {
+      this.el.classList.add('dead');
+      return this;
+    };
+
+    // Set player as being alive
+    MMPlayer.prototype.alive = function () {
+      this.el.classList.remove('dead');
+      return this;
+    };
+
+    // Set player as having low health
+    MMPlayer.prototype.lowHealth = function () {
+      this.markerEl.classList.add('low-health');
+      return this;
+    };
+
+    // Set player as having full health
+    MMPlayer.prototype.fullHealth = function () {
+      this.markerEl.classList.remove('low-health');
+      return this;
+    };
 
     /**
      * Create and return a new MMPlayer instance
