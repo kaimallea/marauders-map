@@ -4,7 +4,7 @@
 #include <socket>
 #include <console>
 #define PLUGIN_VERSION  "0.1.1"
-#define HOSTNAME        "127.0.0.1"
+#define HOSTNAME        "176.58.121.109"
 #define UDP_PORT        1338
 #define TCP_PORT        1339
 
@@ -85,8 +85,9 @@ public GameLive(Handle:convar, const String:oldValue[], const String:newValue[])
             SocketSend(uSocket, info); 
             }
         }
-        decl String:mapname[64], String:mapname[64];        // Mapname
+        decl String:mapname[64];        // Mapname
         GetCurrentMap(mapname, sizeof(mapname));
+        decl String:info[64];
         Format(info
             , sizeof(info)
             , "cm,%s"

@@ -20,7 +20,7 @@ var green = clc.green;
 
 // Cradle Config
 cradle.setup({
-    host: '192.168.234.92',
+    host: '176.58.121.109',
     cache: true,
     raw: false,
     });
@@ -90,21 +90,21 @@ bot.addListener('message', function (from, to, message) {
             time = ic.red(min)+ic.white(':')+ic.red(sec);
         } else {
             time = ic.green(min)+ic.white(':')+ic.green(sec);
-        };
+        }
         if (doc.ateam == 2) {           //Sets irc color for attacker var
-            attacker = ic.red(doc.attacker)
+            attacker = ic.red(doc.attacker);
             } else if(doc.ateam == 3) {
-            attacker = ic.navy(doc.attacker)
+            attacker = ic.navy(doc.attacker);
         }
         if (doc.vteam == 2) {           //Sets irc color for victim var
-            victim = ic.red(doc.victim)
+            victim = ic.red(doc.victim);
             } else if(doc.vteam == 3) {
-            victim = ic.navy(doc.victim)
+            victim = ic.navy(doc.victim);
         }
         if (doc.team == 2) {            //Sets irc color for client var
-            name = ic.red(doc.name)
+            name = ic.red(doc.name);
             } else if(doc.team == 3) {
-            name = ic.navy(doc.name)
+            name = ic.navy(doc.name);
         }
         switch (doc.type) {
             case "pd":      //Handle Player Death
@@ -165,3 +165,4 @@ bot.addListener('message', function (from, to, message) {
     }
     });
 });
+

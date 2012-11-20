@@ -56,9 +56,9 @@ var green = clc.green;
 
 // Cradle connection info.
 cradle.setup({
-    host: '192.168.234.92',
+    host: '176.58.121.109',
     cache: true,
-    raw: false,
+    raw: false
 });
 
 var c = new(cradle.Connection);
@@ -93,46 +93,46 @@ var tcpServer = net.createServer(function (c) { //tcp server events handled
             time   = data[1];
             plant  = data[2];
             
-                switch(type) {      //Different cases, different db writes
+            switch(type) {      //Different cases, different db writes
 
-                    case 're':          //round end
-                        winner   = data[3]
-                        reason   = data[4]
-                        payload  = JSON.stringify(
-                        { type: type, time: time, plant: plant, winner: winner, reason: reason }
-                        );
-                        console.log(warn(payload));
-                        payload  = JSON.parse(payload);
-                        dbsave(payload);
-                        if(winner == 2) {
-                            GAME_STATE.t.wins++
-                            console.log(error(GAME_STATE.t.wins))
-                        } else if(winner ==3) {
-                            GAME_STATE.ct.wins++
-                            console.log(notice(GAME_STATE.ct.wins))
-                        }
-                    break;
-                    case 'pd':          //player death
-                        attacker = data[3]
-                        victim   = data[4]
-                        ateam    = data[5]
-                        vteam    = data[6]
-                        weapon   = data[7]
-                        headshot = data[8]
-                        payload  = JSON.stringify(
-                        { type: type, time: time, plant: plant
-                        , victim: victim, attacker: attacker
-                        , vteam: vteam, ateam: ateam, weapon: weapon, headshot: headshot
-                        });
-                        console.log(warn(payload));
+                case 're':          //round end
+                    winner   = data[3];
+                    reason   = data[4];
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant, winner: winner, reason: reason }
+                    );
+                    console.log(warn(payload));
                     payload  = JSON.parse(payload);
                     dbsave(payload);
+                    if(winner == 2) {
+                        GAME_STATE.t.wins++;
+                        console.log(error(GAME_STATE.t.wins));
+                    } else if(winner ==3) {
+                        GAME_STATE.ct.wins++;
+                        console.log(notice(GAME_STATE.ct.wins));
+                    }
+                break;
+                case 'pd':          //player death
+                    attacker = data[3];
+                    victim   = data[4];
+                    ateam    = data[5];
+                    vteam    = data[6];
+                    weapon   = data[7];
+                    headshot = data[8];
+                    payload  = JSON.stringify(
+                    { type: type, time: time, plant: plant
+                    , victim: victim, attacker: attacker
+                    , vteam: vteam, ateam: ateam, weapon: weapon, headshot: headshot
+                    });
+                    console.log(warn(payload));
+                payload  = JSON.parse(payload);
+                dbsave(payload);
                 break;
                 case 'ps':          //plant started
-                    name     = data[3]
+                    name     = data[3];
                 break;
-                case 'bp':          //bomb planted
-                    name     = data[3]
+                    case 'bp':          //bomb planted
+                        name     = data[3];
                     payload  = JSON.stringify(
                     { type: type, time: time, plant: plant, name: name } 
                     );
@@ -141,8 +141,8 @@ var tcpServer = net.createServer(function (c) { //tcp server events handled
                     dbsave(payload);
                 break;
                 case 'ds':          //defuse started
-                    name     = data[3]
-                    site     = data[4]
+                    name     = data[3];
+                    site     = data[4];
                     payload  = JSON.stringify(
                     { type: type, time: time, plant: plant, name: name }
                     );
@@ -151,10 +151,9 @@ var tcpServer = net.createServer(function (c) { //tcp server events handled
                     dbsave(payload);
                 break;
                 case 'bd':          //bomb defused
-                    name     = data[3]
-                break;
-                case 'fb':          //player_blind
                     name     = data[3];
+                break;
+               case 'fb':          //player_blind
                     team     = data[4];
                     payload  = JSON.stringify(
                     { type: type, time: time, plant: plant, name: name } 
