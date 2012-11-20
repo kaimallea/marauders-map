@@ -5,7 +5,10 @@
     "version": "0.0.1",
     "dependencies": {
         "express": ">= 3.x.x",
-        "socket.io": ">= 0.9.x"
+        "socket.io": ">= 0.9.x",
+        "cradle": ">= 0.6.4",
+        "cli-color": ">= 0.2.1",
+        "irc": ">= 0.3.4"
     },
     "engine": "node 0.8.x"
 }
