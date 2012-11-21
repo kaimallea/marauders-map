@@ -87,6 +87,11 @@ var tcpServer = net.createServer(function (c) { //tcp server events handled
         });
         c.on('data', function (data) {     //On Data, save data to db
             //data = type,timestamp,var1,var2,var3,var4,var5,var6,var7,etc
+            // TODO This will be changed, 
+            // Proposed format is:
+            // Meta document >> Map Document >> Player Document >>
+            // Round Document >> Event Document.
+            //
             console.log(warn(data));
             data   = data.toString().split(',');
             type   = data[0];
