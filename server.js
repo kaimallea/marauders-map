@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 
 var HTTP_PORT = 1337,
-    UDP_PORT = 1338;
+    UDP_PORT = 1338,
+    TCP_PORT = 1339;
 
+//Requires
 var http = require('http'),
     net = require('net'),
     dgram = require('dgram'),
     express = require('express'),
     io = require('socket.io'),
-    util = require('util');
+    util = require('util'),
+    cradle = require('cradle'),
+    clc = require('cli-color'),
+    irc = require('irc');
 
 var webapp = express();
 var httpServer = http.createServer(webapp);
@@ -39,20 +44,45 @@ var GAME_STATE = {
 // Static files (js, css, images, etc.) will be
 // served out of "static" folder
 webapp.use(express.static(__dirname + '/static'));
-
-
 // HTTP requests to root should return index.html
 webapp.get('/', function (req, res) { res.sendfile(__dirname + '/index.html');
 });
 
+// Cli-color styling
+var error = clc.red;
+var warn = clc.yellow;
+var notice = clc.blue;
+var green = clc.green;
+
+// Cradle connection info.
+cradle.setup({
+    host: '176.58.121.109',
+    cache: true,
+    raw: false
+});
+
+var c = new(cradle.Connection);
+var db = c.database('google-strike');
+
+// Checks if db exists, if not, creates.
+db.exists(function(err, exists) {
+    if (err) {
+        console.log('Error:', err);
+    } else if (exists) {
+      console.log(error('Lights...') + '    ' + warn('Camera...') + '    ' + green('Counter!'));
+    } else {
+      console.log(warn('db does not exist, creating...'));
+      db.create();
+    }
+});
 
 // Table of player positions, indexed by id (0-9)
-// TODO: player ids can be any number, not just 0-9
+// // TODO: player ids can be any number, not just 0-9
 var POSITIONS = [
-/*
-  [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0],
-  [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0]
-*/
+/**
+     [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0],
+     [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0]
+     */
 ];
 var positionsUpdated = false;
 
@@ -186,8 +216,7 @@ dbsave = function (payload){        //DB save function for cases
     }
     });
 };
-
-// le incoming UDP packets
+// Handle incoming UDP packets
 udpServer.on('message', function (msg, rinfo) {
     var data = msg.toString().split(','),
         eventType = data[0],
@@ -219,8 +248,13 @@ udpServer.on('message', function (msg, rinfo) {
     }
 });
 
+//Set up listens
 udpServer.on('listening', function () {
-    console.log('UDP server listening on %d', UDP_PORT);
+console.log(notice('UDP') + ' server listening on' + notice(' %d'), UDP_PORT);
+});
+
+tcpServer.listen(TCP_PORT, function () {
+console.log(notice('TCP') + ' server listening on' + notice(' %d'), TCP_PORT);
 });
 
 httpServer.listen(HTTP_PORT);
