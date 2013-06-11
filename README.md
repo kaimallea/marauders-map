@@ -12,12 +12,13 @@ CS:GO Data Capture Plugin and Server
 ## Compiling and Enabling SourceMod Plugin:
 
 1. Place .sp file in `../csgo/addons/sourcemod/scripting/`
-2. Change directory to `../csgo/addons/sourcemod/scripting/`
-3. Compile .sp file: `./compile.sh <filename.sp>`
+2. Place contents of `../include/` in `../csgo/addons/sourcemod/scripting/include/` (a symlink will do it)
+3. Change directory to `../csgo/addons/sourcemod/scripting/`
+4. Compile .sp file: `./compile.sh <filename.sp>`
 	- Compiled file (.smx) will be output to `../csgo/addons/sourcemod/scripting/compiled/`
-4. Move compiled file (.smx) into `../csgo/addons/sourcemod/plugins/`
-5. Restart server or change map
-6. Ensure plugin is loaded from server console: `sm plugins list`
+5. Move compiled file (.smx) into `../csgo/addons/sourcemod/plugins/`
+6. Restart server or change map
+7. Ensure plugin is loaded from server console: `sm plugins list`
 
 
 ## Running the Data Capture Server
