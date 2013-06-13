@@ -57,22 +57,22 @@ public OnPluginStart()
     
 }
 
-//public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
-//{
-//    if (gReady && IsPlayerAlive(client))
-//    {
-//        decl team, Float:pos[3];
-//
-//        team = GetClientTeam(client);
-//        GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos);
-//
-//        decl String:playerInfo[32];
-//        Format(playerInfo
-//                , sizeof(playerInfo)
-//                , "p,%d,%d,%.0f,%.0f,%.0f,%.0f" // p,id,team,x,y,z,yaw
-//                , client, team, pos[0], pos[1], pos[2], ang[1]
-//        );
-//
-//        SocketSend(uSocket, playerInfo);
-//    }
-//}
+public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
+{
+    if (gReady && IsPlayerAlive(client))
+    {
+        decl team, Float:pos[3];
+
+        team = GetClientTeam(client);
+        GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos);
+
+        decl String:playerInfo[32];
+        Format(playerInfo
+                , sizeof(playerInfo)
+                , "p,%d,%d,%.0f,%.0f,%.0f,%.0f" // p,id,team,x,y,z,yaw
+                , client, team, pos[0], pos[1], pos[2], ang[1]
+        );
+
+        SocketSend(uSocket, playerInfo);
+    }
+}
