@@ -57,12 +57,6 @@ public OnPluginStart()
     
 }
 
-public SocketCallBack(Handle:socket, String:info[]) 
-{
-    SocketSend(socket, info)
-    PrintToServer(info)
-}
-
 //public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang[3], &weapon)
 //{
 //    if (gReady && IsPlayerAlive(client))

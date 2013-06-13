@@ -37,7 +37,7 @@ public onRoundEnd(Handle:event, const String:name[], bool:dontBroadcast) /**Roun
             , "re,%i,%d,%i,%i"
             , gRoundTime, bStart, winner, reason 
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
     rStart = false;
     bStart = false;
 }
@@ -56,7 +56,7 @@ public onBombPlanted(Handle:event, const String:name[], bool:dontBroadcast) /**B
             , "bp,%i,%d,%s"
             ,  gRoundTime, bStart, cname
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
     rStart = false;
     bStart = true;
     CreateTimer(1.0, BombTime, _, TIMER_REPEAT);
@@ -76,7 +76,7 @@ public onBombDefused(Handle:event, const String:name[], bool:dontBroadcast) /**B
             , "bd,%i,%d,%s,%i"
             ,  gRoundTime, bStart, cname, bombSite
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
     PrintToServer("---%i----",bombSite)
 }
 /**Grenade Related Events.**/
@@ -97,7 +97,7 @@ public onHeDetonate(Handle:event, const String:name[], bool:dontBroadcast)
             , "hed, %i, %d, %s, %i, %f, %f, %f"
             , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
 }
 
 public onFbDetonate(Handle:event, const String:name[], bool:dontBroadcast)
@@ -117,7 +117,7 @@ public onFbDetonate(Handle:event, const String:name[], bool:dontBroadcast)
             , "hed, %i, %d, %s, %i, %f, %f, %f"
             , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
 }
 
 public onSmokeDetonate(Handle:event, const String:name[], bool:dontBroadcast)
@@ -137,7 +137,7 @@ public onSmokeDetonate(Handle:event, const String:name[], bool:dontBroadcast)
             , "hed, %i, %d, %s, %i, %f, %f, %f"
             , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
 }
 
 public onMolotovDetonate(Handle:event, const String:name[], bool:dontBroadcast)
@@ -157,7 +157,7 @@ public onMolotovDetonate(Handle:event, const String:name[], bool:dontBroadcast)
             , "hed, %i, %d, %s, %i, %f, %f, %f"
             , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
 }
 
 public onDecoyDetonate(Handle:event, const String:name[], bool:dontBroadcast)
@@ -177,7 +177,7 @@ public onDecoyDetonate(Handle:event, const String:name[], bool:dontBroadcast)
             , "hed, %i, %d, %s, %i, %f, %f, %f"
             , gRoundTime, bStart, cname, team, pos[0], pos[1], pos[2] 
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
 }
 
 /** Player Related Events. **/
@@ -220,7 +220,7 @@ public onPlayerBlind(Handle:event, const String:name[], bool:dontBroadcast) /**P
             , "{ \"name\": \"%s\", \"blind\": \"true\" }\n"
             , cname
             )
-    SocketCallBack(tSocket, info)
+    SocketSend(tSocket, info)
     PrintToServer(
         "%s was blinded by a flashbang"
         , cname
@@ -270,8 +270,7 @@ public onWeaponFire(Handle:event, const String:name[], bool:dontBroadcast) /**We
           , "wf,%i,%d,%s,%s,%d,"
           , gRoundTime, bStart, cname, weapon, silenced 
           )
-    PrintToServer("Bang")
-    SocketCallBack(uSocket, info) //UDP 
+    SocketSend(uSocket, info) //UDP 
 }
 
 public onPlayerSpawned(Handle:event, const String:name[], bool:dontBroadcast)
@@ -286,7 +285,7 @@ public onPlayerSpawned(Handle:event, const String:name[], bool:dontBroadcast)
               , clientid
         );
 
-        SocketCallBack(uSocket, payload);
+        SocketSend(uSocket, payload);
     }
 }
 
